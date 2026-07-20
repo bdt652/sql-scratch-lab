@@ -19,6 +19,7 @@ Một SQLite studio chạy hoàn toàn trong trình duyệt, kết hợp **SQL E
 - Có mẫu khởi tạo Quản lý học sinh đầy đủ bảng `Lop`, `HocSinh`, khóa chính, khóa ngoài và `DiemTB`.
 - Mẫu câu lệnh có thể nạp và sửa trực tiếp trong editor.
 - Cây schema hiển thị table, view, index, trigger, cột, khóa chính và khóa ngoại.
+- Panel Cấu trúc/Lịch sử mở dạng ngăn trượt, có thể ẩn hoàn toàn và ghi nhớ lựa chọn để ưu tiên không gian kéo thả.
 - Xem trước 100 dòng của table/view và chèn nhanh tên bảng hoặc cột vào editor.
 - Hiển thị nhiều tập kết quả, giá trị `NULL`, BLOB, số dòng thay đổi và thời gian thực thi.
 - Tải từng tập kết quả thành CSV.

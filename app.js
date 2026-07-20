@@ -3,6 +3,7 @@
 (function startSQLiteStudio(global) {
   const HISTORY_PREFIX = "sqlite-scratch-history-v3:";
   const EDITOR_PREFIX = "sqlite-scratch-editor-v3:";
+  const EXPLORER_VISIBILITY_KEY = "sqlite-scratch-explorer-visible-v1";
   const MAX_HISTORY = 50;
   const MAX_RENDERED_ROWS = 1000;
   const elements = {};
@@ -32,6 +33,7 @@
     "transactionBadge", "editorStats", "editorHint", "executionScope", "runEditorButton",
     "clearResultsButton", "resultMeta", "resultPlaceholder", "resultOutput", "toastRegion",
     "databaseDialog", "databaseForm", "databaseNameInput", "confirmCreateDatabaseButton", "helpDialog",
+    "databaseExplorer", "explorerBackdrop", "explorerToggleButton", "explorerToggleLabel", "closeExplorerButton",
   ];
 
   function cacheElements() {
@@ -278,6 +280,28 @@
     });
     elements.schemaPane.hidden = tab !== "schema";
     elements.historyPane.hidden = tab !== "history";
+  }
+
+  function setExplorerOpen(open, options = {}) {
+    const isOpen = Boolean(open);
+    elements.databaseExplorer.hidden = !isOpen;
+    elements.explorerBackdrop.hidden = !isOpen;
+    elements.databaseExplorer.setAttribute("aria-hidden", String(!isOpen));
+    elements.explorerToggleButton.setAttribute("aria-expanded", String(isOpen));
+    elements.explorerToggleButton.setAttribute("aria-label", isOpen ? "Ẩn cấu trúc và lịch sử database" : "Hiện cấu trúc và lịch sử database");
+    elements.explorerToggleButton.title = isOpen ? "Ẩn cấu trúc và lịch sử database" : "Hiện cấu trúc và lịch sử database";
+    elements.explorerToggleButton.classList.toggle("active", isOpen);
+    elements.explorerToggleLabel.textContent = "CSDL";
+    if (options.persist !== false) safeSet(EXPLORER_VISIBILITY_KEY, isOpen ? "open" : "closed");
+    if (options.focus === false) return;
+    global.setTimeout(() => {
+      if (isOpen) elements.closeExplorerButton.focus();
+      else elements.explorerToggleButton.focus();
+    }, 0);
+  }
+
+  function restoreExplorerVisibility() {
+    setExplorerOpen(safeGet(EXPLORER_VISIBILITY_KEY) === "open", { persist: false, focus: false });
   }
 
   function historyStorageKey(name = state.workspace?.currentName) {
@@ -783,6 +807,15 @@
       button.addEventListener("click", () => setSideTab(button.dataset.sideTab));
     });
 
+    elements.explorerToggleButton.addEventListener("click", () => setExplorerOpen(elements.databaseExplorer.hidden));
+    elements.closeExplorerButton.addEventListener("click", () => setExplorerOpen(false));
+    elements.explorerBackdrop.addEventListener("click", () => setExplorerOpen(false));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !elements.databaseExplorer.hidden && !document.querySelector("dialog[open]")) {
+        setExplorerOpen(false);
+      }
+    });
+
     elements.openHelpButton.addEventListener("click", () => openDialog(elements.helpDialog));
     elements.newDatabaseButton.addEventListener("click", () => {
       elements.databaseNameInput.value = "";
@@ -894,6 +927,7 @@
 
   async function initialize() {
     cacheElements();
+    restoreExplorerVisibility();
     bindUiEvents();
     elements.insertTemplateButton.disabled = true;
 
