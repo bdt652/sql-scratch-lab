@@ -1,5 +1,7 @@
 # SQL Scratch Lab
 
+[![Deploy GitHub Pages](https://github.com/bdt652/sql-scratch-lab/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/bdt652/sql-scratch-lab/actions/workflows/deploy-pages.yml)
+
 Một website học SQL bằng cách kéo thả các khối lệnh trực quan, được xây dựng hoàn toàn bằng **HTML, CSS và JavaScript thuần**.
 
 ## Bản chạy trực tuyến
