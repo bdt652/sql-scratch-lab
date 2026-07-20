@@ -16,8 +16,8 @@ Sau khi GitHub Pages được bật, dự án có tại:
 - Tạo và tô màu câu SQL theo thời gian thực.
 - Kiểm tra thứ tự, cú pháp và hướng dẫn sửa lỗi.
 - Chạy truy vấn ngay trên hai bảng dữ liệu mẫu trong trình duyệt.
-- Bốn bài học từ cơ bản đến thử thách.
-- Giao diện responsive, hỗ trợ bàn phím và tự lưu tiến độ bài học.
+- Hiển thị kết quả truy vấn dưới dạng bảng.
+- Giao diện responsive, hỗ trợ bàn phím và tự lưu vùng làm việc.
 - Không cần cài package, framework hay cơ sở dữ liệu.
 
 ## Chạy dự án
@@ -42,7 +42,7 @@ Workflow `.github/workflows/deploy-pages.yml` tự động triển khai website 
 sql-scratch-lab/
 ├── index.html   # Cấu trúc giao diện
 ├── styles.css   # Thiết kế responsive và các khối lệnh
-├── app.js       # Kéo thả, tạo SQL, thực thi và bài học
+├── app.js       # Kéo thả, tạo SQL và thực thi truy vấn
 └── README.md
 ```
 
@@ -55,4 +55,3 @@ Bộ thực thi trong dự án mô phỏng một phần SQL trên dữ liệu Ja
 - Thêm khối `JOIN`, `GROUP BY` và các hàm tổng hợp.
 - Cho phép người học tự tạo bảng và nhập dữ liệu.
 - Dùng SQLite/WebAssembly để chạy nhiều câu SQL hơn.
-- Thêm chế độ sáng tạo bài học riêng.
