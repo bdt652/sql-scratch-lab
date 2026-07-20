@@ -51,60 +51,9 @@ const BLOCKS = {
   limit: { keyword: "LIMIT", help: "Giới hạn số dòng", className: "block-limit", singleton: true },
 };
 
-const LESSONS = [
-  {
-    title: "Làm quen với SELECT",
-    description: "Tạo câu lệnh lấy toàn bộ dữ liệu trong bảng học viên.",
-    goal: "Hiển thị tất cả học viên",
-    hint: "Bắt đầu với SELECT *, sau đó chỉ ra bảng students bằng FROM.",
-    solution: [
-      { type: "select", values: { columns: ["*"] } },
-      { type: "from", values: { table: "students" } },
-    ],
-  },
-  {
-    title: "Lọc dữ liệu với WHERE",
-    description: "Tìm tên và điểm của những học viên đạt từ 8 điểm.",
-    goal: "name, score • score >= 8",
-    hint: "Sau FROM students, thêm WHERE và đặt cột score, toán tử >=, giá trị 8.",
-    solution: [
-      { type: "select", values: { columns: ["name", "score"] } },
-      { type: "from", values: { table: "students" } },
-      { type: "where", values: { column: "score", operator: ">=", value: "8" } },
-    ],
-  },
-  {
-    title: "Tạo bảng xếp hạng",
-    description: "Lấy top 3 học viên từ 7 điểm, sắp xếp điểm từ cao xuống thấp.",
-    goal: "score >= 7 • ORDER BY score DESC • LIMIT 3",
-    hint: "Thứ tự đúng là SELECT → FROM → WHERE → ORDER BY → LIMIT.",
-    solution: [
-      { type: "select", values: { columns: ["name", "city", "score"] } },
-      { type: "from", values: { table: "students" } },
-      { type: "where", values: { column: "score", operator: ">=", value: "7" } },
-      { type: "order", values: { column: "score", direction: "DESC" } },
-      { type: "limit", values: { count: "3" } },
-    ],
-  },
-  {
-    title: "Thử thách khóa học",
-    description: "Tìm các khóa thuộc nhóm Dữ liệu và xếp học phí từ thấp đến cao.",
-    goal: "title, fee • category = Dữ liệu • fee ASC",
-    hint: "Đổi bảng thành courses. Chuỗi văn bản sẽ tự được đặt trong dấu nháy đơn.",
-    solution: [
-      { type: "select", values: { columns: ["title", "fee"] } },
-      { type: "from", values: { table: "courses" } },
-      { type: "where", values: { column: "category", operator: "=", value: "Dữ liệu" } },
-      { type: "order", values: { column: "fee", direction: "ASC" } },
-    ],
-  },
-];
-
 const state = {
   blocks: [],
   activeSchema: "students",
-  currentLesson: 0,
-  completedLessons: new Set(),
   draggedBlockId: null,
 };
 
@@ -115,9 +64,7 @@ function cacheElements() {
     "blockPalette", "workspace", "workspaceBlocks", "emptyWorkspace", "blockCount",
     "sqlPreview", "validationMessage", "runButton", "copyButton", "clearButton",
     "resultPlaceholder", "resultTableWrap", "resultMeta", "schemaTabs", "schemaContent",
-    "lessonStep", "lessonTitle", "lessonDescription", "lessonGoal", "lessonProgressBar", "resultsTitle",
-    "hintButton", "checkButton", "previousLessonButton", "nextLessonButton", "lessonDots",
-    "toastRegion", "helpDialog", "openHelpButton", "saveState",
+    "resultsTitle", "toastRegion", "helpDialog", "openHelpButton", "saveState",
   ].forEach((id) => {
     elements[id] = document.getElementById(id);
   });
@@ -633,91 +580,6 @@ function renderSchema() {
   `;
 }
 
-function renderLesson() {
-  const lesson = LESSONS[state.currentLesson];
-  elements.lessonStep.textContent = `BÀI ${state.currentLesson + 1} / ${LESSONS.length}`;
-  elements.lessonTitle.textContent = lesson.title;
-  elements.lessonDescription.textContent = lesson.description;
-  elements.lessonGoal.innerHTML = `<span>Mục tiêu</span><code>${escapeHtml(lesson.goal)}</code>`;
-  elements.lessonProgressBar.style.width = `${((state.currentLesson + 1) / LESSONS.length) * 100}%`;
-  elements.previousLessonButton.disabled = state.currentLesson === 0;
-  elements.nextLessonButton.disabled = state.currentLesson === LESSONS.length - 1;
-
-  elements.lessonDots.innerHTML = LESSONS.map((_, index) => `
-    <button
-      class="lesson-dot ${index === state.currentLesson ? "active" : ""} ${state.completedLessons.has(index) ? "completed" : ""}"
-      type="button"
-      data-lesson-index="${index}"
-      aria-label="Đi đến bài ${index + 1}"
-      aria-current="${index === state.currentLesson ? "step" : "false"}"
-    ></button>
-  `).join("");
-}
-
-function normalizeComparableValue(value) {
-  return String(value ?? "").trim().toLocaleLowerCase("vi");
-}
-
-function matchesLesson(actualBlocks, solution) {
-  if (actualBlocks.length !== solution.length) return false;
-  return solution.every((expected, index) => {
-    const actual = actualBlocks[index];
-    if (!actual || actual.type !== expected.type) return false;
-    return Object.entries(expected.values).every(([key, expectedValue]) => {
-      const actualValue = actual.values[key];
-      if (Array.isArray(expectedValue)) {
-        return actualValue.length === expectedValue.length && expectedValue.every((value) => actualValue.includes(value));
-      }
-      return normalizeComparableValue(actualValue) === normalizeComparableValue(expectedValue);
-    });
-  });
-}
-
-function checkLesson() {
-  const lesson = LESSONS[state.currentLesson];
-  const validation = validateBlocks();
-  if (!validation.valid) {
-    showToast(validation.message, "error");
-    return;
-  }
-
-  if (matchesLesson(state.blocks, lesson.solution)) {
-    state.completedLessons.add(state.currentLesson);
-    renderLesson();
-    executeQuery();
-    showToast("Chính xác! Bạn đã hoàn thành bài học 🎉", "success");
-    persistProgress();
-  } else {
-    showToast("Câu lệnh chạy được, nhưng chưa đúng mục tiêu. Hãy đọc lại yêu cầu hoặc xem gợi ý.", "error");
-  }
-}
-
-function loadLessonSolution() {
-  const lesson = LESSONS[state.currentLesson];
-  state.blocks = lesson.solution.map((block) => ({
-    id: createId(),
-    type: block.type,
-    values: structuredClone(block.values),
-  }));
-  const table = state.blocks.find((block) => block.type === "from")?.values.table || "students";
-  state.activeSchema = table;
-  renderSchema();
-  renderWorkspace();
-  markSaved();
-  showToast("Đã nạp một câu lệnh mẫu. Hãy quan sát từng khối nhé.");
-}
-
-function changeLesson(index) {
-  if (index < 0 || index >= LESSONS.length) return;
-  state.currentLesson = index;
-  state.blocks = [];
-  renderLesson();
-  renderWorkspace();
-  clearResults();
-  markSaved();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
 function clearResults() {
   elements.resultPlaceholder.hidden = false;
   elements.resultTableWrap.hidden = true;
@@ -762,8 +624,6 @@ function markSaved() {
 function persistProgress() {
   try {
     localStorage.setItem("sql-scratch-progress", JSON.stringify({
-      completedLessons: [...state.completedLessons],
-      currentLesson: state.currentLesson,
       activeSchema: state.activeSchema,
       blocks: state.blocks,
     }));
@@ -775,10 +635,6 @@ function persistProgress() {
 function restoreProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem("sql-scratch-progress") || "{}");
-    state.completedLessons = new Set(saved.completedLessons || []);
-    if (Number.isInteger(saved.currentLesson) && LESSONS[saved.currentLesson]) {
-      state.currentLesson = saved.currentLesson;
-    }
     if (DATABASE[saved.activeSchema]) state.activeSchema = saved.activeSchema;
     if (Array.isArray(saved.blocks)) {
       state.blocks = saved.blocks
@@ -786,7 +642,6 @@ function restoreProgress() {
         .map((block) => ({ id: block.id || createId(), type: block.type, values: block.values }));
     }
   } catch {
-    state.completedLessons = new Set();
     state.blocks = [];
   }
 }
@@ -802,24 +657,6 @@ function bindGlobalEvents() {
   });
   elements.runButton.addEventListener("click", executeQuery);
   elements.copyButton.addEventListener("click", copySql);
-  elements.checkButton.addEventListener("click", checkLesson);
-  elements.hintButton.addEventListener("click", () => {
-    const lesson = LESSONS[state.currentLesson];
-    showToast(`${lesson.hint} Bấm thêm lần nữa để nạp mẫu.`);
-    if (elements.hintButton.dataset.armed === "true") {
-      loadLessonSolution();
-      elements.hintButton.dataset.armed = "false";
-    } else {
-      elements.hintButton.dataset.armed = "true";
-      setTimeout(() => { elements.hintButton.dataset.armed = "false"; }, 5000);
-    }
-  });
-  elements.previousLessonButton.addEventListener("click", () => changeLesson(state.currentLesson - 1));
-  elements.nextLessonButton.addEventListener("click", () => changeLesson(state.currentLesson + 1));
-  elements.lessonDots.addEventListener("click", (event) => {
-    const dot = event.target.closest("[data-lesson-index]");
-    if (dot) changeLesson(Number(dot.dataset.lessonIndex));
-  });
   elements.schemaTabs.addEventListener("click", (event) => {
     const tab = event.target.closest("[data-schema]");
     if (!tab) return;
@@ -843,7 +680,6 @@ function init() {
   restoreProgress();
   renderPalette();
   renderSchema();
-  renderLesson();
   renderWorkspace();
   setupWorkspaceDropZone();
   bindGlobalEvents();
@@ -861,6 +697,5 @@ if (typeof module !== "undefined" && module.exports) {
     evaluateConditions,
     formatSqlValue,
     highlightSql,
-    matchesLesson,
   };
 }
