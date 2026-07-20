@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#6246ea" />
     <title>SQLite Scratch Lab</title>
-    <link rel="stylesheet" href="styles.css?v=20260720.7" />
+    <link rel="stylesheet" href="styles.css?v=20260720.8" />
   </head>
   <body>
     <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite">
@@ -114,19 +114,19 @@
             <div class="workbench-header">
               <div>
                 <span class="eyebrow">SQL WORKBENCH</span>
-                <h1 id="workbenchTitle">Viết hoặc lắp ghép câu lệnh</h1>
+                <h1 id="workbenchTitle">Kéo thả để tạo và chạy câu lệnh</h1>
               </div>
               <div class="segmented-tabs mode-tabs" role="tablist" aria-label="Chế độ nhập SQL">
-                <button class="segment-tab active" type="button" role="tab" aria-selected="true" data-mode-tab="editor">
-                  <span aria-hidden="true">⌨</span> SQL Editor
-                </button>
-                <button class="segment-tab" type="button" role="tab" aria-selected="false" data-mode-tab="blocks">
+                <button class="segment-tab active" type="button" role="tab" aria-selected="true" data-mode-tab="blocks">
                   <span aria-hidden="true">▦</span> Kéo thả
+                </button>
+                <button class="segment-tab" type="button" role="tab" aria-selected="false" data-mode-tab="editor">
+                  <span aria-hidden="true">⌨</span> SQL Editor
                 </button>
               </div>
             </div>
 
-            <section id="editorMode" class="mode-pane editor-mode" aria-label="SQL Editor">
+            <section id="editorMode" class="mode-pane editor-mode" hidden aria-label="SQL Editor">
               <div class="editor-toolbar">
                 <div class="template-picker">
                   <label for="templateSelect">Mẫu lệnh</label>
@@ -190,13 +190,13 @@ ORDER BY s.score DESC;</textarea>
               </div>
             </section>
 
-            <section id="blocksMode" class="mode-pane blocks-mode" hidden aria-label="Trình kéo thả SQL">
+            <section id="blocksMode" class="mode-pane blocks-mode" aria-label="Trình kéo thả SQL">
               <div class="block-studio-grid">
                 <aside class="block-palette-column" aria-labelledby="paletteTitle">
                   <div class="subpanel-heading">
                     <div>
                       <span class="eyebrow">HỘP CÔNG CỤ</span>
-                      <h2 id="paletteTitle">Khối truy vấn</h2>
+                      <h2 id="paletteTitle">Khối câu lệnh</h2>
                     </div>
                     <span>Kéo hoặc bấm</span>
                   </div>
@@ -213,7 +213,7 @@ ORDER BY s.score DESC;</textarea>
                   </div>
                   <div id="workspace" class="workspace" aria-label="Thả các khối SQL vào đây">
                     <div class="empty-workspace" id="emptyWorkspace">
-                      <div class="empty-blocks" aria-hidden="true"><span>SELECT</span><i>＋</i><span>FROM</span></div>
+                      <div class="empty-blocks" aria-hidden="true"><span>CREATE</span><i>＋</i><span>SELECT</span></div>
                       <h3>Thả khối vào đây</h3>
                       <p>Bạn cũng có thể bấm một khối để thêm nhanh.</p>
                     </div>
@@ -243,7 +243,7 @@ ORDER BY s.score DESC;</textarea>
                   <div class="block-preview-actions">
                     <button class="button button-ghost" id="sendBlockToEditorButton" type="button" disabled>Đưa sang editor</button>
                     <button class="button run-button" id="runBlockButton" type="button" disabled>
-                      <span aria-hidden="true">▶</span> Chạy truy vấn
+                      <span aria-hidden="true">▶</span> Chạy câu lệnh
                     </button>
                   </div>
                 </aside>
@@ -323,11 +323,13 @@ ORDER BY s.score DESC;</textarea>
         <article>
           <span aria-hidden="true">▦</span>
           <h3>Kéo thả</h3>
-          <p>Lắp truy vấn SELECT cơ bản rồi chạy trên chính database đang mở.</p>
+          <p>Tạo database, bảng, khóa, cập nhật dữ liệu và lắp truy vấn nhiều bảng mà không cần gõ SQL.</p>
         </article>
       </div>
       <ul class="help-notes">
         <li><strong>CREATE DATABASE:</strong> ứng dụng hỗ trợ như một lớp tương thích và tự chuyển sang database vừa tạo.</li>
+        <li><strong>CREATE TABLE:</strong> khối trực quan cho phép thêm trường, chọn kiểu dữ liệu, PRIMARY KEY và FOREIGN KEY.</li>
+        <li><strong>ALTER TABLE:</strong> SQLite hỗ trợ thêm, đổi tên, xóa cột và đổi tên bảng; không thêm trực tiếp PRIMARY KEY/FOREIGN KEY vào bảng đã có.</li>
         <li><strong>USE / SHOW DATABASES / DROP DATABASE:</strong> có thể chạy trực tiếp trong SQL Editor.</li>
         <li><strong>Kiểu dữ liệu:</strong> SQLite nhận `CHAR`, `VARCHAR`, `DATE`, `BOOLEAN`, nhưng lưu theo quy tắc type affinity.</li>
         <li><strong>Lưu dữ liệu:</strong> thay đổi được tự lưu vào IndexedDB sau khi transaction kết thúc.</li>
@@ -339,8 +341,8 @@ ORDER BY s.score DESC;</textarea>
     </dialog>
 
     <script src="vendor/sql-wasm.js?v=1.14.1"></script>
-    <script src="database.js?v=20260720.7"></script>
-    <script src="block-builder.js?v=20260720.7"></script>
-    <script src="app.js?v=20260720.7"></script>
+    <script src="database.js?v=20260720.8"></script>
+    <script src="block-builder.js?v=20260720.8"></script>
+    <script src="app.js?v=20260720.8"></script>
   </body>
 </html>

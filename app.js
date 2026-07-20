@@ -348,8 +348,8 @@
         <div class="explorer-empty">
           <span aria-hidden="true">▰</span>
           <strong>Database đang trống</strong>
-          <p>Dùng SQL Editor và chạy CREATE TABLE để bắt đầu.</p>
-          <button class="text-button" type="button" data-empty-template="create-table">Nạp mẫu CREATE TABLE</button>
+          <p>Kéo khối CREATE TABLE để khai báo bảng đầu tiên.</p>
+          <button class="text-button" type="button" data-empty-block="create-table">Thêm khối CREATE TABLE</button>
         </div>`;
       return;
     }
@@ -437,7 +437,7 @@
     renderSchema();
     applySchemaSearch();
     if (state.builder) {
-      if (options.newDatabase) state.builder.setDatabase(state.workspace.currentName, state.schema);
+      if (options.newDatabase) state.builder.setDatabase(state.workspace.currentName, state.schema, { preserveBlocks: options.preserveBlocks });
       else state.builder.updateSchema(state.schema);
     }
     const status = state.workspace.getStatus();
@@ -594,10 +594,10 @@
     global.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  async function syncAfterSql(previousDatabaseName) {
+  async function syncAfterSql(previousDatabaseName, options = {}) {
     const databaseChanged = previousDatabaseName !== state.workspace.currentName;
     await refreshDatabaseList();
-    await refreshSchema({ newDatabase: databaseChanged });
+    await refreshSchema({ newDatabase: databaseChanged, preserveBlocks: databaseChanged && options.preserveBlocks });
     if (databaseChanged) {
       loadHistory();
       saveEditorNow(state.workspace.currentName);
@@ -619,16 +619,16 @@
     try {
       const execution = await state.workspace.execute(command);
       renderExecution(execution);
-      await syncAfterSql(previousDatabaseName);
+      await syncAfterSql(previousDatabaseName, { preserveBlocks: source === "blocks" });
       addHistory(command, execution);
       if (execution.transactionOpen) setSaveState("Transaction chưa lưu", "warning");
       else setSaveState("Đã lưu", "saved");
-      showToast(source === "blocks" ? "Đã chạy truy vấn từ các khối." : "SQLite đã thực thi thành công.", "success");
+      showToast(source === "blocks" ? "Đã chạy câu lệnh từ các khối." : "SQLite đã thực thi thành công.", "success");
       return execution;
     } catch (error) {
       renderExecutionError(error, command);
       try {
-        await syncAfterSql(previousDatabaseName);
+        await syncAfterSql(previousDatabaseName, { preserveBlocks: source === "blocks" });
       } catch (syncError) {
         console.error("Không thể đồng bộ giao diện sau khi chạy SQL.", syncError);
       }
@@ -847,6 +847,7 @@
       const preview = event.target.closest("[data-preview-object]");
       const insert = event.target.closest("[data-insert-identifier]");
       const emptyTemplate = event.target.closest("[data-empty-template]");
+      const emptyBlock = event.target.closest("[data-empty-block]");
       if (preview) {
         const sql = `SELECT *\nFROM ${quoteIdentifier(preview.dataset.previewObject)}\nLIMIT 100;`;
         setEditorSql(sql);
@@ -856,6 +857,9 @@
       } else if (emptyTemplate) {
         elements.templateSelect.value = emptyTemplate.dataset.emptyTemplate;
         setEditorSql(getTemplate(emptyTemplate.dataset.emptyTemplate));
+      } else if (emptyBlock) {
+        setMode("blocks");
+        state.builder.addBlock(emptyBlock.dataset.emptyBlock);
       }
     });
 

@@ -23,7 +23,11 @@ Một SQLite studio chạy hoàn toàn trong trình duyệt, kết hợp **SQL E
 - Hiển thị nhiều tập kết quả, giá trị `NULL`, BLOB, số dòng thay đổi và thời gian thực thi.
 - Tải từng tập kết quả thành CSV.
 - Lưu lịch sử câu lệnh riêng cho từng database.
-- Kéo, thả, đổi thứ tự hoặc bấm các khối `SELECT`, `FROM`, `WHERE`, `AND`, `OR`, `ORDER BY`, `LIMIT`.
+- Mở mặc định ở chế độ kéo thả; SQL Editor vẫn có thể chuyển sang bất cứ lúc nào.
+- Kéo thả khối khởi tạo `CREATE DATABASE`, `CREATE TABLE`, `ALTER TABLE`; cấu hình trường, kiểu dữ liệu, `PRIMARY KEY`, `FOREIGN KEY` và bảng/cột tham chiếu ngay trên khối.
+- Kéo thả khối cập nhật `INSERT`, `UPDATE`, `DELETE` với danh sách cột và điều kiện an toàn.
+- Kéo thả khối truy vấn `SELECT`, `FROM`, `INNER JOIN`, `WHERE`, `AND`, `OR`, `ORDER BY`, `LIMIT`.
+- Ghép nhiều khối thành một tệp lệnh, xem trước SQL được sinh ra rồi chạy toàn bộ bằng SQLite thật.
 - Khối kéo thả dùng schema thật của database đang mở và chạy bằng cùng bộ máy SQLite.
 - Hỗ trợ chuột, cảm ứng, bàn phím và giao diện responsive.
 
@@ -50,7 +54,7 @@ sql-scratch-lab/
 ├── index.html                 # Cấu trúc giao diện
 ├── styles.css                 # Thiết kế responsive
 ├── database.js                # SQLite, IndexedDB và quản lý database
-├── block-builder.js           # Trình tạo SELECT bằng khối kéo thả
+├── block-builder.js           # Trình tạo DDL, DML và truy vấn bằng khối kéo thả
 ├── app.js                     # Điều phối editor, schema, lịch sử và kết quả
 ├── vendor/
 │   ├── sql-wasm.js            # sql.js 1.14.1

@@ -1121,8 +1121,8 @@ summary:focus-visible,
 
 .block-studio-grid {
   display: grid;
-  grid-template-columns: 215px minmax(310px, 1fr) 310px;
-  min-height: 550px;
+  grid-template-columns: 230px minmax(430px, 1fr) 310px;
+  min-height: 620px;
 }
 
 .block-palette-column,
@@ -1152,8 +1152,28 @@ summary:focus-visible,
 }
 
 .block-palette {
+  display: block;
+  max-height: 680px;
+  padding-right: 3px;
+  overflow-y: auto;
+}
+
+.palette-group + .palette-group {
+  margin-top: 16px;
+}
+
+.palette-group h3 {
+  margin: 0 0 7px 2px;
+  color: var(--muted);
+  font-size: 0.61rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.palette-group-blocks {
   display: grid;
-  gap: 9px;
+  gap: 8px;
 }
 
 .palette-block {
@@ -1217,11 +1237,18 @@ summary:focus-visible,
 
 .block-select { background: #7855e9; }
 .block-from { background: #297fd6; }
+.block-join { background: #176eb8; }
 .block-where { background: #e57937; }
 .block-and { background: #ca8f16; }
 .block-or { background: #d2588e; }
 .block-order { background: #159b99; }
 .block-limit { background: #62718b; }
+.block-create-database { background: #6048b8; }
+.block-create-table { background: #4b61bd; }
+.block-alter-table { background: #6471a9; }
+.block-insert { background: #168f68; }
+.block-update { background: #0d888b; }
+.block-delete-sql { background: #c4525d; }
 
 .workspace {
   position: relative;
@@ -1375,6 +1402,23 @@ summary:focus-visible,
   align-items: center;
 }
 
+.block-controls-stack {
+  display: grid;
+  align-items: stretch;
+  width: 100%;
+}
+
+.block-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.table-name-row {
+  padding-bottom: 2px;
+}
+
 .block-control,
 .block-input {
   min-width: 0;
@@ -1397,6 +1441,106 @@ summary:focus-visible,
 
 .block-input {
   flex: 1 1 92px;
+}
+
+.block-name-input {
+  flex-basis: 150px;
+  font-weight: 800;
+}
+
+.length-input {
+  flex: 0 0 68px;
+  width: 68px;
+}
+
+.inline-keyword,
+.inline-note,
+.block-arrow,
+.block-equals {
+  color: rgba(255, 255, 255, 0.83);
+  font-family: var(--mono);
+  font-size: 0.59rem;
+  font-weight: 850;
+}
+
+.inline-note {
+  font-family: inherit;
+  font-weight: 650;
+}
+
+.schema-column-list,
+.insert-value-list {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 5px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.schema-column-row {
+  display: grid;
+  grid-template-columns: 22px minmax(105px, 1fr) 92px 68px max-content max-content max-content 112px 94px 27px;
+  gap: 5px;
+  align-items: center;
+  min-width: 790px;
+}
+
+.insert-value-row {
+  display: grid;
+  grid-template-columns: 22px minmax(120px, 0.7fr) 15px minmax(150px, 1.3fr) 27px;
+  gap: 5px;
+  align-items: center;
+  min-width: 390px;
+}
+
+.column-number {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(0, 0, 0, 0.14);
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  font-weight: 850;
+}
+
+.mini-action,
+.mini-add-button {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.mini-action {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 7px;
+  font-size: 0.9rem;
+}
+
+.mini-action:hover,
+.mini-add-button:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mini-action-danger:hover {
+  background: rgba(125, 16, 31, 0.4);
+}
+
+.mini-add-button {
+  justify-self: start;
+  min-height: 29px;
+  padding: 0 9px;
+  border-radius: 7px;
+  font-size: 0.59rem;
+  font-weight: 800;
 }
 
 .limit-input {
@@ -2177,7 +2321,7 @@ summary:focus-visible,
   }
 
   .block-studio-grid {
-    grid-template-columns: 190px minmax(310px, 1fr) 280px;
+    grid-template-columns: 200px minmax(390px, 1fr) 280px;
   }
 }
 
@@ -2193,7 +2337,7 @@ summary:focus-visible,
   }
 
   .block-studio-grid {
-    grid-template-columns: 185px minmax(0, 1fr);
+    grid-template-columns: 195px minmax(0, 1fr);
   }
 
   .block-preview-column {
@@ -2404,6 +2548,11 @@ summary:focus-visible,
   }
 
   .block-palette {
+    display: block;
+    max-height: none;
+  }
+
+  .palette-group-blocks {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -2461,7 +2610,7 @@ summary:focus-visible,
     display: flex;
   }
 
-  .block-palette {
+  .palette-group-blocks {
     grid-template-columns: 1fr;
   }
 
