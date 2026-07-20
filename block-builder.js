@@ -100,6 +100,14 @@
     }
   }
 
+  function safeRemove(key) {
+    try {
+      global.localStorage?.removeItem(key);
+    } catch {
+      // The builder remains usable when localStorage is unavailable.
+    }
+  }
+
   class SqlBlockBuilder {
     constructor(options = {}) {
       this.elements = {
@@ -142,6 +150,17 @@
       this.blocks = this.restore();
       this.normalizeForSchema();
       this.render();
+    }
+
+    renameDatabase(oldName, newName) {
+      if (!oldName || !newName || oldName === newName) return;
+      if (this.databaseName === oldName) this.save();
+      const saved = safeGet(`${STORAGE_PREFIX}${oldName}`);
+      if (saved !== null) {
+        safeSet(`${STORAGE_PREFIX}${newName}`, saved);
+        safeRemove(`${STORAGE_PREFIX}${oldName}`);
+      }
+      if (this.databaseName === oldName) this.databaseName = newName;
     }
 
     updateSchema(schema) {
@@ -273,8 +292,11 @@
 
       this.elements.workspace.addEventListener("drop", (event) => {
         event.preventDefault();
-        const type = event.dataTransfer?.getData("application/x-sql-block-type");
-        const id = event.dataTransfer?.getData("application/x-sql-workspace-block") || this.draggingId;
+        const plain = event.dataTransfer?.getData("text/plain") || "";
+        const type = event.dataTransfer?.getData("application/x-sql-block-type") || (BLOCKS[plain] ? plain : "");
+        const id = event.dataTransfer?.getData("application/x-sql-workspace-block")
+          || this.draggingId
+          || (!BLOCKS[plain] ? plain : "");
         const index = this.getDropIndex(event.clientY);
         this.clearDropState();
         if (type) this.addBlock(type, index);
@@ -454,8 +476,7 @@
       const currentIndex = this.blocks.findIndex((block) => block.id === id);
       if (currentIndex < 0) return;
       const [block] = this.blocks.splice(currentIndex, 1);
-      const adjustedIndex = currentIndex < targetIndex ? targetIndex - 1 : targetIndex;
-      this.blocks.splice(Math.max(0, Math.min(adjustedIndex, this.blocks.length)), 0, block);
+      this.blocks.splice(Math.max(0, Math.min(targetIndex, this.blocks.length)), 0, block);
       this.save();
       this.render();
     }

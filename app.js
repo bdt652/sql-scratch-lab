@@ -667,6 +667,7 @@
     try {
       saveEditorNow(oldName);
       const renamed = await state.workspace.renameDatabase(newName);
+      state.builder.renameDatabase(oldName, renamed);
       const editorContent = safeGet(editorStorageKey(oldName));
       if (editorContent !== null) {
         safeSet(editorStorageKey(renamed), editorContent);
