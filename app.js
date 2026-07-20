@@ -33,7 +33,7 @@
     "transactionBadge", "editorStats", "editorHint", "executionScope", "runEditorButton",
     "clearResultsButton", "resultMeta", "resultPlaceholder", "resultOutput", "toastRegion",
     "databaseDialog", "databaseForm", "databaseNameInput", "confirmCreateDatabaseButton", "helpDialog",
-    "databaseExplorer", "explorerBackdrop", "explorerToggleButton", "explorerToggleLabel", "closeExplorerButton",
+    "studioLayout", "databaseExplorer", "explorerToggleButton", "explorerToggleLabel", "collapseExplorerButton",
   ];
 
   function cacheElements() {
@@ -285,7 +285,7 @@
   function setExplorerOpen(open, options = {}) {
     const isOpen = Boolean(open);
     elements.databaseExplorer.hidden = !isOpen;
-    elements.explorerBackdrop.hidden = !isOpen;
+    elements.studioLayout.classList.toggle("explorer-open", isOpen);
     elements.databaseExplorer.setAttribute("aria-hidden", String(!isOpen));
     elements.explorerToggleButton.setAttribute("aria-expanded", String(isOpen));
     elements.explorerToggleButton.setAttribute("aria-label", isOpen ? "Ẩn cấu trúc và lịch sử database" : "Hiện cấu trúc và lịch sử database");
@@ -295,7 +295,7 @@
     if (options.persist !== false) safeSet(EXPLORER_VISIBILITY_KEY, isOpen ? "open" : "closed");
     if (options.focus === false) return;
     global.setTimeout(() => {
-      if (isOpen) elements.closeExplorerButton.focus();
+      if (isOpen) elements.collapseExplorerButton.focus();
       else elements.explorerToggleButton.focus();
     }, 0);
   }
@@ -808,8 +808,7 @@
     });
 
     elements.explorerToggleButton.addEventListener("click", () => setExplorerOpen(elements.databaseExplorer.hidden));
-    elements.closeExplorerButton.addEventListener("click", () => setExplorerOpen(false));
-    elements.explorerBackdrop.addEventListener("click", () => setExplorerOpen(false));
+    elements.collapseExplorerButton.addEventListener("click", () => setExplorerOpen(false));
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !elements.databaseExplorer.hidden && !document.querySelector("dialog[open]")) {
         setExplorerOpen(false);

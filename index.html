@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#6246ea" />
     <title>SQLite Scratch Lab</title>
-    <link rel="stylesheet" href="styles.css?v=20260720.9" />
+    <link rel="stylesheet" href="styles.css?v=20260720.10" />
   </head>
   <body>
     <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite">
@@ -75,16 +75,14 @@
 
     <main class="app-shell">
 
-      <section class="studio-layout">
-        <button class="explorer-backdrop" id="explorerBackdrop" type="button" tabindex="-1" aria-label="Đóng bảng cấu trúc database" hidden></button>
-
+      <section class="studio-layout" id="studioLayout">
         <aside class="panel explorer-panel" id="databaseExplorer" aria-label="Cấu trúc và lịch sử database" hidden>
           <div class="explorer-topbar">
             <div class="segmented-tabs explorer-tabs" role="tablist" aria-label="Nội dung thanh bên">
               <button class="segment-tab active" type="button" role="tab" aria-selected="true" data-side-tab="schema">Cấu trúc</button>
               <button class="segment-tab" type="button" role="tab" aria-selected="false" data-side-tab="history">Lịch sử</button>
             </div>
-            <button class="explorer-close-button" id="closeExplorerButton" type="button" aria-label="Đóng bảng cấu trúc" title="Đóng">×</button>
+            <button class="explorer-collapse-button" id="collapseExplorerButton" type="button" aria-label="Thu gọn bảng cấu trúc" title="Thu gọn">‹</button>
           </div>
 
           <section id="schemaPane" class="explorer-pane" aria-labelledby="schemaPaneTitle">
@@ -341,7 +339,7 @@ ORDER BY s.score DESC;</textarea>
         <li><strong>CREATE DATABASE:</strong> ứng dụng hỗ trợ như một lớp tương thích và tự chuyển sang database vừa tạo.</li>
         <li><strong>CREATE TABLE:</strong> khối trực quan cho phép thêm trường, chọn kiểu dữ liệu, PRIMARY KEY và FOREIGN KEY.</li>
         <li><strong>ALTER TABLE:</strong> SQLite hỗ trợ thêm, đổi tên, xóa cột và đổi tên bảng; không thêm trực tiếp PRIMARY KEY/FOREIGN KEY vào bảng đã có.</li>
-        <li><strong>Cấu trúc và lịch sử:</strong> bấm nút “CSDL” cạnh tiêu đề để mở hoặc ẩn panel, giúp dành toàn bộ chiều rộng cho kéo thả.</li>
+        <li><strong>Cấu trúc và lịch sử:</strong> bấm nút “CSDL” để hiện cột bên trái; bấm “‹” để thu gọn và dành toàn bộ chiều rộng cho kéo thả.</li>
         <li><strong>USE / SHOW DATABASES / DROP DATABASE:</strong> có thể chạy trực tiếp trong SQL Editor.</li>
         <li><strong>Kiểu dữ liệu:</strong> SQLite nhận `CHAR`, `VARCHAR`, `DATE`, `BOOLEAN`, nhưng lưu theo quy tắc type affinity.</li>
         <li><strong>Lưu dữ liệu:</strong> thay đổi được tự lưu vào IndexedDB sau khi transaction kết thúc.</li>
@@ -353,8 +351,8 @@ ORDER BY s.score DESC;</textarea>
     </dialog>
 
     <script src="vendor/sql-wasm.js?v=1.14.1"></script>
-    <script src="database.js?v=20260720.9"></script>
-    <script src="block-builder.js?v=20260720.9"></script>
-    <script src="app.js?v=20260720.9"></script>
+    <script src="database.js?v=20260720.10"></script>
+    <script src="block-builder.js?v=20260720.10"></script>
+    <script src="app.js?v=20260720.10"></script>
   </body>
 </html>
