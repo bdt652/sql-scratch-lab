@@ -176,7 +176,9 @@
 
     const templates = {
       select: `SELECT *\nFROM ${quotedTable}\nLIMIT 100;`,
+      "student-system": `-- CREATE DATABASE được lớp tương thích của ứng dụng xử lý\nCREATE DATABASE QuanLyHocSinh;\n\nCREATE TABLE Lop (\n  MaLop CHAR(10) PRIMARY KEY,\n  TenLop VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE HocSinh (\n  MaHS CHAR(10) PRIMARY KEY,\n  HoTen VARCHAR(50) NOT NULL,\n  NgaySinh DATE,\n  GioiTinh BOOLEAN,\n  MaLop CHAR(10),\n  DiemTB REAL CHECK (DiemTB BETWEEN 0 AND 10),\n  FOREIGN KEY (MaLop) REFERENCES Lop(MaLop)\n    ON UPDATE CASCADE ON DELETE SET NULL\n);\n\n-- Dữ liệu lớp phải có trước học sinh vì có khóa ngoài\nINSERT INTO Lop (MaLop, TenLop) VALUES\n  ('11A1', 'Lớp 11A1'),\n  ('11A2', 'Lớp 11A2');\n\nINSERT INTO HocSinh (MaHS, HoTen, NgaySinh, GioiTinh, MaLop, DiemTB) VALUES\n  ('HS002', 'Trần Thị Bình', '2008-08-20', FALSE, '11A1', 8.6),\n  ('HS003', 'Lê Minh Châu', '2008-03-15', TRUE, '11A2', 7.9);\n\nSELECT HocSinh.HoTen, Lop.TenLop, HocSinh.DiemTB\nFROM HocSinh\nINNER JOIN Lop ON HocSinh.MaLop = Lop.MaLop\nORDER BY HocSinh.DiemTB DESC;`,
       "create-table": `CREATE TABLE products (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  name TEXT NOT NULL,\n  price REAL NOT NULL DEFAULT 0 CHECK (price >= 0),\n  stock INTEGER NOT NULL DEFAULT 0,\n  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n);`,
+      "alter-table": `-- SQLite hỗ trợ ADD COLUMN, RENAME COLUMN, RENAME TO và DROP COLUMN\nALTER TABLE ${quotedTable}\nADD COLUMN GhiChu TEXT;`,
       insert: usableColumns.length
         ? `INSERT INTO ${quotedTable} (${usableColumns.map((column) => quoteIdentifier(column.name)).join(", ")})\nVALUES (${usableColumns.map(sampleLiteral).join(", ")});`
         : `INSERT INTO products (name, price, stock)\nVALUES ('Bàn phím', 450000, 12);`,
@@ -511,12 +513,35 @@
       </article>`);
   }
 
+  function getSqlErrorHint(errorMessage) {
+    const message = String(errorMessage || "");
+    const missingColumn = message.match(/no such column:\s*([^\s]+)/i)?.[1];
+    if (missingColumn) {
+      return `Cột ${missingColumn} chưa được khai báo. Nếu cần sắp xếp theo điểm, hãy thêm DiemTB vào CREATE TABLE hoặc dùng ALTER TABLE HocSinh ADD COLUMN DiemTB REAL.`;
+    }
+    const missingTable = message.match(/no such table:\s*(?:main\.)?([^\s]+)/i)?.[1];
+    if (missingTable) {
+      return `Bảng ${missingTable} chưa tồn tại. Với khóa ngoài, hãy tạo bảng Lop và thêm các mã lớp trước khi thêm HocSinh.`;
+    }
+    if (/FOREIGN KEY constraint failed/i.test(message)) {
+      return "Giá trị khóa ngoài chưa tồn tại trong bảng cha. Hãy thêm MaLop tương ứng vào bảng Lop trước.";
+    }
+    if (/has \d+ columns but \d+ values were supplied/i.test(message)) {
+      return "Số giá trị không khớp số cột. Nên ghi rõ danh sách cột trong INSERT, nhất là khi bảng có thêm cột DiemTB.";
+    }
+    if (/already exists/i.test(message)) {
+      return "Đối tượng đã tồn tại. Có thể đổi tên, xóa đối tượng cũ hoặc dùng IF NOT EXISTS khi phù hợp.";
+    }
+    return "";
+  }
+
   function renderExecutionError(error, sql) {
     state.lastExecution = null;
     const execution = error.execution || {};
     elements.resultPlaceholder.hidden = true;
     elements.resultOutput.hidden = false;
     elements.resultMeta.textContent = `SQLite báo lỗi · ${formatDuration(execution.durationMs)}`;
+    const hint = getSqlErrorHint(error.message || String(error));
     elements.resultOutput.innerHTML = `
       <article class="execution-summary error">
         <span aria-hidden="true">!</span>
@@ -525,6 +550,7 @@
           <p>${escapeHtml(error.message || String(error))}</p>
         </div>
       </article>
+      ${hint ? `<div class="error-hint"><strong>Gợi ý sửa:</strong><span>${escapeHtml(hint)}</span></div>` : ""}
       <details class="failed-sql" open>
         <summary>SQL gây lỗi</summary>
         <pre><code>${escapeHtml(sql)}</code></pre>
@@ -568,6 +594,17 @@
     global.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  async function syncAfterSql(previousDatabaseName) {
+    const databaseChanged = previousDatabaseName !== state.workspace.currentName;
+    await refreshDatabaseList();
+    await refreshSchema({ newDatabase: databaseChanged });
+    if (databaseChanged) {
+      loadHistory();
+      saveEditorNow(state.workspace.currentName);
+    }
+    return databaseChanged;
+  }
+
   async function executeSql(sql, source = "editor") {
     const command = String(sql || "").trim();
     if (!command) {
@@ -578,18 +615,23 @@
 
     setBusy(true);
     setSaveState("Đang thực thi…", "saving");
+    const previousDatabaseName = state.workspace.currentName;
     try {
       const execution = await state.workspace.execute(command);
       renderExecution(execution);
+      await syncAfterSql(previousDatabaseName);
       addHistory(command, execution);
-      await refreshDatabaseList();
-      await refreshSchema();
       if (execution.transactionOpen) setSaveState("Transaction chưa lưu", "warning");
       else setSaveState("Đã lưu", "saved");
       showToast(source === "blocks" ? "Đã chạy truy vấn từ các khối." : "SQLite đã thực thi thành công.", "success");
       return execution;
     } catch (error) {
       renderExecutionError(error, command);
+      try {
+        await syncAfterSql(previousDatabaseName);
+      } catch (syncError) {
+        console.error("Không thể đồng bộ giao diện sau khi chạy SQL.", syncError);
+      }
       addHistory(command, error.execution, error);
       elements.transactionBadge.hidden = !state.workspace.getStatus().transactionOpen;
       setSaveState(state.workspace.getStatus().transactionOpen ? "Transaction chưa lưu" : "Không có thay đổi", state.workspace.getStatus().transactionOpen ? "warning" : "saved");

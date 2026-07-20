@@ -233,6 +233,95 @@ WHERE score >= 8;
     return view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength);
   }
 
+  function skipSqlWhitespaceAndComments(source, startIndex = 0) {
+    let index = startIndex;
+    while (index < source.length) {
+      const whitespace = source.slice(index).match(/^\s+/);
+      if (whitespace) {
+        index += whitespace[0].length;
+        continue;
+      }
+      if (source.startsWith("--", index)) {
+        const newline = source.indexOf("\n", index + 2);
+        index = newline < 0 ? source.length : newline + 1;
+        continue;
+      }
+      if (source.startsWith("/*", index)) {
+        const end = source.indexOf("*/", index + 2);
+        index = end < 0 ? source.length : end + 2;
+        continue;
+      }
+      break;
+    }
+    return index;
+  }
+
+  function unquoteDatabaseIdentifier(value) {
+    const identifier = String(value || "").trim();
+    if ((identifier.startsWith("`") && identifier.endsWith("`"))
+      || (identifier.startsWith('"') && identifier.endsWith('"'))
+      || (identifier.startsWith("[") && identifier.endsWith("]"))) {
+      const inner = identifier.slice(1, -1);
+      if (identifier.startsWith("`")) return inner.replaceAll("``", "`");
+      if (identifier.startsWith('"')) return inner.replaceAll('""', '"');
+      return inner.replaceAll("]]", "]");
+    }
+    return identifier;
+  }
+
+  function parseLeadingDatabaseCommands(source) {
+    const commands = [];
+    let index = 0;
+
+    while (index < source.length) {
+      const commandStart = skipSqlWhitespaceAndComments(source, index);
+      const remaining = source.slice(commandStart);
+      let match = remaining.match(/^CREATE\s+(?:DATABASE|SCHEMA)\s+(IF\s+NOT\s+EXISTS\s+)?((?:`(?:``|[^`])+`|"(?:""|[^"])+"|\[(?:\]\]|[^\]])+\]|[^;\s]+))\s*(?:;|$)/i);
+      if (match) {
+        commands.push({
+          type: "create-database",
+          name: unquoteDatabaseIdentifier(match[2]),
+          ifNotExists: Boolean(match[1]),
+          sql: match[0].trim(),
+        });
+        index = commandStart + match[0].length;
+        continue;
+      }
+
+      match = remaining.match(/^USE\s+((?:`(?:``|[^`])+`|"(?:""|[^"])+"|\[(?:\]\]|[^\]])+\]|[^;\s]+))\s*(?:;|$)/i);
+      if (match) {
+        commands.push({ type: "use-database", name: unquoteDatabaseIdentifier(match[1]), sql: match[0].trim() });
+        index = commandStart + match[0].length;
+        continue;
+      }
+
+      match = remaining.match(/^DROP\s+(?:DATABASE|SCHEMA)\s+(IF\s+EXISTS\s+)?((?:`(?:``|[^`])+`|"(?:""|[^"])+"|\[(?:\]\]|[^\]])+\]|[^;\s]+))\s*(?:;|$)/i);
+      if (match) {
+        commands.push({
+          type: "drop-database",
+          name: unquoteDatabaseIdentifier(match[2]),
+          ifExists: Boolean(match[1]),
+          sql: match[0].trim(),
+        });
+        index = commandStart + match[0].length;
+        continue;
+      }
+
+      match = remaining.match(/^SHOW\s+DATABASES\s*(?:;|$)/i);
+      if (match) {
+        commands.push({ type: "show-databases", sql: match[0].trim() });
+        index = commandStart + match[0].length;
+        continue;
+      }
+      break;
+    }
+
+    return {
+      commands,
+      remainingSql: source.slice(skipSqlWhitespaceAndComments(source, index)).trim(),
+    };
+  }
+
   class SQLiteWorkspace {
     constructor(options = {}) {
       this.wasmPath = options.wasmPath || "vendor/";
@@ -278,6 +367,12 @@ WHERE score >= 8;
         createdAt: record.createdAt,
         updatedAt: record.updatedAt,
       }));
+    }
+
+    async resolveDatabaseName(name) {
+      const normalized = normalizeDatabaseName(name);
+      const databases = await this.listDatabases();
+      return databases.find((item) => item.name.toLocaleLowerCase("vi") === normalized.toLocaleLowerCase("vi"))?.name || null;
     }
 
     async hasDatabase(name) {
@@ -391,6 +486,106 @@ WHERE score >= 8;
     }
 
     async execute(sql) {
+      const source = String(sql || "").trim();
+      if (!source) throw new Error("Hãy nhập một câu lệnh SQL trước khi chạy.");
+
+      const parsed = parseLeadingDatabaseCommands(source);
+      if (parsed.commands.length === 0) return this.executeSQLite(source);
+
+      const startedAt = global.performance?.now?.() ?? Date.now();
+      const aggregate = {
+        sql: source,
+        results: [],
+        statements: 0,
+        affectedRows: 0,
+        durationMs: 0,
+        transactionOpen: this.transactionDepth > 0,
+      };
+
+      try {
+        for (const command of parsed.commands) {
+          if (command.type !== "show-databases" && this.transactionDepth > 0) {
+            throw new Error("Hãy COMMIT hoặc ROLLBACK transaction trước khi chuyển database.");
+          }
+
+          if (command.type === "create-database") {
+            const existingName = await this.resolveDatabaseName(command.name);
+            if (existingName && !command.ifNotExists) {
+              throw new Error(`Database “${existingName}” đã tồn tại.`);
+            }
+            const databaseName = existingName || await this.createDatabase(command.name, { sample: false });
+            await this.switchDatabase(databaseName);
+            aggregate.results.push({
+              columns: ["database", "status"],
+              values: [[databaseName, existingName ? "đã tồn tại · đã chọn" : "đã tạo · đã chọn"]],
+              sql: command.sql,
+            });
+          }
+
+          if (command.type === "use-database") {
+            const databaseName = await this.resolveDatabaseName(command.name);
+            if (!databaseName) throw new Error(`Không tìm thấy database “${command.name}”.`);
+            await this.switchDatabase(databaseName);
+            aggregate.results.push({
+              columns: ["database", "status"],
+              values: [[databaseName, "đang sử dụng"]],
+              sql: command.sql,
+            });
+          }
+
+          if (command.type === "drop-database") {
+            const databaseName = await this.resolveDatabaseName(command.name);
+            if (!databaseName && !command.ifExists) throw new Error(`Không tìm thấy database “${command.name}”.`);
+            if (databaseName) await this.deleteDatabase(databaseName);
+            aggregate.results.push({
+              columns: ["database", "status"],
+              values: [[databaseName || command.name, databaseName ? "đã xóa" : "không tồn tại"]],
+              sql: command.sql,
+            });
+          }
+
+          if (command.type === "show-databases") {
+            const databases = await this.listDatabases();
+            aggregate.results.push({
+              columns: ["database", "size_bytes", "current"],
+              values: databases.map((item) => [item.name, item.size, item.name === this.currentName ? 1 : 0]),
+              sql: command.sql,
+            });
+          }
+          aggregate.statements += 1;
+        }
+
+        if (parsed.remainingSql) {
+          const sqliteExecution = await this.executeSQLite(parsed.remainingSql);
+          aggregate.results.push(...sqliteExecution.results);
+          aggregate.statements += sqliteExecution.statements;
+          aggregate.affectedRows += sqliteExecution.affectedRows;
+          aggregate.transactionOpen = sqliteExecution.transactionOpen;
+        }
+
+        const endedAt = global.performance?.now?.() ?? Date.now();
+        aggregate.durationMs = Math.max(0, endedAt - startedAt);
+        aggregate.transactionOpen = this.transactionDepth > 0;
+        return aggregate;
+      } catch (error) {
+        const innerExecution = error.execution;
+        if (innerExecution) {
+          aggregate.statements += innerExecution.statements || 0;
+          aggregate.affectedRows += innerExecution.affectedRows || 0;
+        }
+        const endedAt = global.performance?.now?.() ?? Date.now();
+        error.execution = {
+          sql: source,
+          statements: aggregate.statements,
+          affectedRows: aggregate.affectedRows,
+          durationMs: Math.max(0, endedAt - startedAt),
+          transactionOpen: this.transactionDepth > 0,
+        };
+        throw error;
+      }
+    }
+
+    async executeSQLite(sql) {
       const source = String(sql || "").trim();
       if (!source) throw new Error("Hãy nhập một câu lệnh SQL trước khi chạy.");
 

@@ -15,6 +15,8 @@ Một SQLite studio chạy hoàn toàn trong trình duyệt, kết hợp **SQL E
 - Nhập file `.sqlite`, `.sqlite3`, `.db` và xuất lại file SQLite chuẩn.
 - Chạy nhiều câu lệnh trong một lần, hoặc chỉ chạy đoạn SQL đang được chọn.
 - Hỗ trợ hệ lệnh SQLite: DDL, DML, SELECT, JOIN, GROUP BY, transaction, view, index, trigger và PRAGMA.
+- Lớp tương thích giáo dục hỗ trợ `CREATE DATABASE`, `USE`, `SHOW DATABASES` và `DROP DATABASE` ngay trong editor.
+- Có mẫu khởi tạo Quản lý học sinh đầy đủ bảng `Lop`, `HocSinh`, khóa chính, khóa ngoài và `DiemTB`.
 - Mẫu câu lệnh có thể nạp và sửa trực tiếp trong editor.
 - Cây schema hiển thị table, view, index, trigger, cột, khóa chính và khóa ngoại.
 - Xem trước 100 dòng của table/view và chèn nhanh tên bảng hoặc cột vào editor.
@@ -29,7 +31,7 @@ Một SQLite studio chạy hoàn toàn trong trình duyệt, kết hợp **SQL E
 
 Database được lưu cục bộ trong **IndexedDB của chính trình duyệt và thiết bị đang dùng**. Website không gửi database lên máy chủ. Vì dữ liệu không tự đồng bộ giữa các trình duyệt hoặc thiết bị, hãy dùng nút **Xuất file** để sao lưu khi cần.
 
-SQLite không có câu lệnh `CREATE DATABASE`. Trong ứng dụng, nút **Tạo database** tạo một file database SQLite mới; sau đó bạn dùng `CREATE TABLE` và các câu lệnh SQL khác trong editor.
+SQLite nguyên bản không có câu lệnh `CREATE DATABASE`. Ứng dụng cung cấp một lớp tương thích: `CREATE DATABASE TenCSDL;` tạo một file SQLite mới và tự chuyển sang database đó. Bạn cũng có thể dùng nút **Mới** trên header.
 
 ## Chạy dự án cục bộ
 

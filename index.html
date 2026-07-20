@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#6246ea" />
     <title>SQLite Scratch Lab</title>
-    <link rel="stylesheet" href="styles.css?v=20260720.6" />
+    <link rel="stylesheet" href="styles.css?v=20260720.7" />
   </head>
   <body>
     <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite">
@@ -133,7 +133,9 @@
                   <select id="templateSelect">
                     <option value="">Chọn một mẫu SQL…</option>
                     <option value="select">SELECT cơ bản</option>
+                    <option value="student-system">Khởi tạo Quản lý học sinh</option>
                     <option value="create-table">CREATE TABLE</option>
+                    <option value="alter-table">ALTER TABLE</option>
                     <option value="insert">INSERT dữ liệu</option>
                     <option value="update">UPDATE dữ liệu</option>
                     <option value="delete">DELETE dữ liệu</option>
@@ -325,7 +327,9 @@ ORDER BY s.score DESC;</textarea>
         </article>
       </div>
       <ul class="help-notes">
-        <li><strong>Tạo database:</strong> dùng nút “Mới”; SQLite không có câu lệnh `CREATE DATABASE`.</li>
+        <li><strong>CREATE DATABASE:</strong> ứng dụng hỗ trợ như một lớp tương thích và tự chuyển sang database vừa tạo.</li>
+        <li><strong>USE / SHOW DATABASES / DROP DATABASE:</strong> có thể chạy trực tiếp trong SQL Editor.</li>
+        <li><strong>Kiểu dữ liệu:</strong> SQLite nhận `CHAR`, `VARCHAR`, `DATE`, `BOOLEAN`, nhưng lưu theo quy tắc type affinity.</li>
         <li><strong>Lưu dữ liệu:</strong> thay đổi được tự lưu vào IndexedDB sau khi transaction kết thúc.</li>
         <li><strong>Sao lưu:</strong> dùng “Xuất file” để tải database chuẩn SQLite về máy.</li>
       </ul>
@@ -335,8 +339,8 @@ ORDER BY s.score DESC;</textarea>
     </dialog>
 
     <script src="vendor/sql-wasm.js?v=1.14.1"></script>
-    <script src="database.js?v=20260720.6"></script>
-    <script src="block-builder.js?v=20260720.6"></script>
-    <script src="app.js?v=20260720.6"></script>
+    <script src="database.js?v=20260720.7"></script>
+    <script src="block-builder.js?v=20260720.7"></script>
+    <script src="app.js?v=20260720.7"></script>
   </body>
 </html>
