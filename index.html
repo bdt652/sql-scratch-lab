@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#6246ea" />
     <title>SQLite Scratch Lab</title>
-    <link rel="stylesheet" href="styles.css?v=20260720.5" />
+    <link rel="stylesheet" href="styles.css?v=20260720.6" />
   </head>
   <body>
     <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite">
@@ -28,6 +28,38 @@
         </span>
       </a>
 
+      <div class="header-database database-identity" aria-label="Database đang mở">
+        <span class="database-icon" aria-hidden="true">▰</span>
+        <div class="database-picker">
+          <label class="sr-only" for="databaseSelect">Chọn database</label>
+          <select id="databaseSelect" class="database-select" aria-label="Chọn database"></select>
+        </div>
+      </div>
+
+      <div class="database-actions" aria-label="Quản lý database">
+        <button class="button button-primary" id="newDatabaseButton" type="button" title="Tạo database">
+          <span aria-hidden="true">＋</span><span class="action-label">Mới</span>
+        </button>
+        <button class="button button-ghost" id="exportDatabaseButton" type="button" title="Xuất file SQLite">
+          <span aria-hidden="true">↓</span><span class="action-label">Xuất</span>
+        </button>
+        <details class="database-more">
+          <summary class="button button-ghost" aria-label="Thêm thao tác database" title="Thêm thao tác">•••</summary>
+          <div class="database-menu">
+            <label class="menu-file-button" for="importDatabaseInput">
+              <span aria-hidden="true">↑</span> Nhập file SQLite
+            </label>
+            <button id="renameDatabaseButton" type="button">Đổi tên</button>
+            <button class="danger-text" id="deleteDatabaseButton" type="button">Xóa database</button>
+          </div>
+        </details>
+        <input id="importDatabaseInput" type="file" accept=".sqlite,.sqlite3,.db,application/x-sqlite3" hidden />
+      </div>
+
+      <div class="database-meta" id="databaseMeta" aria-live="polite">
+        <span>0 bảng · 0 B</span>
+      </div>
+
       <div class="topbar-status">
         <span class="runtime-badge" id="runtimeBadge">
           <span class="status-dot loading"></span>
@@ -42,39 +74,6 @@
     </header>
 
     <main class="app-shell">
-      <section class="database-toolbar panel" aria-label="Quản lý database">
-        <div class="database-identity">
-          <span class="database-icon" aria-hidden="true">▰</span>
-          <div class="database-picker">
-            <label class="sr-only" for="databaseSelect">Chọn database</label>
-            <select id="databaseSelect" class="database-select" aria-label="Chọn database"></select>
-          </div>
-        </div>
-
-        <div class="database-actions" aria-label="Quản lý database">
-          <button class="button button-primary" id="newDatabaseButton" type="button" title="Tạo database">
-            <span aria-hidden="true">＋</span> Mới
-          </button>
-          <label class="button button-ghost file-button" for="importDatabaseInput" title="Nhập file SQLite">
-            <span aria-hidden="true">↑</span> Nhập
-          </label>
-          <input id="importDatabaseInput" type="file" accept=".sqlite,.sqlite3,.db,application/x-sqlite3" hidden />
-          <button class="button button-ghost" id="exportDatabaseButton" type="button" title="Xuất file SQLite">
-            <span aria-hidden="true">↓</span> Xuất
-          </button>
-          <details class="database-more">
-            <summary class="button button-ghost" aria-label="Thêm thao tác database" title="Thêm thao tác">•••</summary>
-            <div class="database-menu">
-              <button id="renameDatabaseButton" type="button">Đổi tên</button>
-              <button class="danger-text" id="deleteDatabaseButton" type="button">Xóa database</button>
-            </div>
-          </details>
-        </div>
-
-        <div class="database-meta" id="databaseMeta" aria-live="polite">
-          <span>0 bảng · 0 B</span>
-        </div>
-      </section>
 
       <section class="studio-layout">
         <aside class="panel explorer-panel" aria-label="Trình khám phá database">
@@ -326,7 +325,7 @@ ORDER BY s.score DESC;</textarea>
         </article>
       </div>
       <ul class="help-notes">
-        <li><strong>Tạo database:</strong> dùng nút “Tạo database”; SQLite không có câu lệnh `CREATE DATABASE`.</li>
+        <li><strong>Tạo database:</strong> dùng nút “Mới”; SQLite không có câu lệnh `CREATE DATABASE`.</li>
         <li><strong>Lưu dữ liệu:</strong> thay đổi được tự lưu vào IndexedDB sau khi transaction kết thúc.</li>
         <li><strong>Sao lưu:</strong> dùng “Xuất file” để tải database chuẩn SQLite về máy.</li>
       </ul>
@@ -336,8 +335,8 @@ ORDER BY s.score DESC;</textarea>
     </dialog>
 
     <script src="vendor/sql-wasm.js?v=1.14.1"></script>
-    <script src="database.js?v=20260720.5"></script>
-    <script src="block-builder.js?v=20260720.5"></script>
-    <script src="app.js?v=20260720.5"></script>
+    <script src="database.js?v=20260720.6"></script>
+    <script src="block-builder.js?v=20260720.6"></script>
+    <script src="app.js?v=20260720.6"></script>
   </body>
 </html>

@@ -704,6 +704,7 @@
   async function importDatabase(event) {
     const file = event.target.files?.[0];
     event.target.value = "";
+    document.querySelector(".database-more")?.removeAttribute("open");
     if (!file) return;
     try {
       if (!(await guardOpenTransaction("nhập database"))) return;
