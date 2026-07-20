@@ -55,6 +55,7 @@ const state = {
   blocks: [],
   activeSchema: "students",
   draggedBlockId: null,
+  suppressNextClick: false,
 };
 
 const elements = {};
@@ -124,6 +125,10 @@ function renderPalette() {
     .join("");
 
   elements.blockPalette.addEventListener("click", (event) => {
+    if (state.suppressNextClick) {
+      event.preventDefault();
+      return;
+    }
     const button = event.target.closest("[data-palette-type]");
     if (button) addBlock(button.dataset.paletteType);
   });
@@ -324,14 +329,24 @@ function normalizeColumnsForTable(tableName) {
   });
 }
 
-function getDropIndex(event) {
+function getDropIndexAtY(clientY) {
   const blockElements = [...elements.workspaceBlocks.querySelectorAll("[data-block-id]:not(.is-dragging)")];
   const nextBlock = blockElements.find((element) => {
     const box = element.getBoundingClientRect();
-    return event.clientY < box.top + box.height / 2;
+    return clientY < box.top + box.height / 2;
   });
   if (!nextBlock) return state.blocks.length;
   return state.blocks.findIndex((block) => block.id === nextBlock.dataset.blockId);
+}
+
+function moveWorkspaceBlock(blockId, dropIndex) {
+  const oldIndex = state.blocks.findIndex((block) => block.id === blockId);
+  if (oldIndex < 0) return;
+  const [movedBlock] = state.blocks.splice(oldIndex, 1);
+  const adjustedIndex = oldIndex < dropIndex ? dropIndex - 1 : dropIndex;
+  state.blocks.splice(Math.max(0, adjustedIndex), 0, movedBlock);
+  renderWorkspace();
+  markSaved();
 }
 
 function setupWorkspaceDropZone() {
@@ -350,22 +365,100 @@ function setupWorkspaceDropZone() {
   elements.workspace.addEventListener("drop", (event) => {
     event.preventDefault();
     elements.workspace.classList.remove("is-dragging-over");
-    const dropIndex = getDropIndex(event);
+    const dropIndex = getDropIndexAtY(event.clientY);
     const workspaceId = event.dataTransfer.getData("text/sql-workspace-block");
     const paletteType = event.dataTransfer.getData("text/sql-block-type");
 
     if (workspaceId) {
-      const oldIndex = state.blocks.findIndex((block) => block.id === workspaceId);
-      if (oldIndex < 0) return;
-      const [movedBlock] = state.blocks.splice(oldIndex, 1);
-      const adjustedIndex = oldIndex < dropIndex ? dropIndex - 1 : dropIndex;
-      state.blocks.splice(Math.max(0, adjustedIndex), 0, movedBlock);
-      renderWorkspace();
-      markSaved();
+      moveWorkspaceBlock(workspaceId, dropIndex);
     } else if (paletteType) {
       addBlock(paletteType, dropIndex);
     }
   });
+}
+
+function setupPointerDrag() {
+  let drag = null;
+
+  function clearPointerDrag() {
+    drag?.ghost?.remove();
+    elements.workspace.classList.remove("is-dragging-over");
+    if (drag?.blockElement) drag.blockElement.classList.remove("is-dragging");
+    drag = null;
+  }
+
+  function finishPointerDrag(event, cancelled = false) {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+
+    if (drag.started) {
+      event.preventDefault();
+      const target = document.elementFromPoint(event.clientX, event.clientY);
+      const isOverWorkspace = target && elements.workspace.contains(target);
+
+      if (!cancelled && isOverWorkspace) {
+        const dropIndex = getDropIndexAtY(event.clientY);
+        if (drag.paletteType) addBlock(drag.paletteType, dropIndex);
+        if (drag.blockId) moveWorkspaceBlock(drag.blockId, dropIndex);
+      }
+
+      state.suppressNextClick = true;
+      setTimeout(() => { state.suppressNextClick = false; }, 0);
+    }
+
+    clearPointerDrag();
+  }
+
+  document.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse" || event.button !== 0) return;
+
+    const paletteBlock = event.target.closest("[data-palette-type]");
+    const handle = event.target.closest(".block-handle");
+    if (!paletteBlock && !handle) return;
+
+    const blockElement = handle?.closest("[data-block-id]") || null;
+    drag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      paletteType: paletteBlock?.dataset.paletteType || null,
+      blockId: blockElement?.dataset.blockId || null,
+      blockElement,
+      sourceElement: paletteBlock || blockElement,
+      ghost: null,
+      started: false,
+    };
+  });
+
+  document.addEventListener("pointermove", (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+
+    const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+    if (!drag.started && distance < 8) return;
+
+    if (!drag.started) {
+      drag.started = true;
+      drag.ghost = drag.sourceElement.cloneNode(true);
+      drag.ghost.removeAttribute("id");
+      drag.ghost.classList.add("pointer-drag-ghost");
+      drag.ghost.style.width = `${Math.min(drag.sourceElement.getBoundingClientRect().width, window.innerWidth - 24)}px`;
+      document.body.append(drag.ghost);
+      if (drag.blockElement) drag.blockElement.classList.add("is-dragging");
+    }
+
+    event.preventDefault();
+    drag.ghost.style.left = `${event.clientX}px`;
+    drag.ghost.style.top = `${event.clientY}px`;
+
+    const target = document.elementFromPoint(event.clientX, event.clientY);
+    elements.workspace.classList.toggle("is-dragging-over", Boolean(target && elements.workspace.contains(target)));
+
+    const scrollEdge = 70;
+    if (event.clientY < scrollEdge) window.scrollBy(0, -12);
+    if (event.clientY > window.innerHeight - scrollEdge) window.scrollBy(0, 12);
+  }, { passive: false });
+
+  document.addEventListener("pointerup", (event) => finishPointerDrag(event));
+  document.addEventListener("pointercancel", (event) => finishPointerDrag(event, true));
 }
 
 function validateBlocks() {
@@ -682,6 +775,7 @@ function init() {
   renderSchema();
   renderWorkspace();
   setupWorkspaceDropZone();
+  setupPointerDrag();
   bindGlobalEvents();
 }
 
