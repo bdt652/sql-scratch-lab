@@ -32,26 +32,6 @@
     </header>
 
     <main class="app-shell">
-      <section class="lesson-card" aria-labelledby="lessonTitle">
-        <div class="lesson-icon" aria-hidden="true">🎯</div>
-        <div class="lesson-copy">
-          <div class="eyebrow" id="lessonStep">BÀI 1 / 4</div>
-          <h1 id="lessonTitle">Làm quen với SELECT</h1>
-          <p id="lessonDescription">Tạo câu lệnh lấy toàn bộ dữ liệu trong bảng học viên.</p>
-        </div>
-        <div class="lesson-goal" id="lessonGoal">
-          <span>Mục tiêu</span>
-          <code>Hiển thị tất cả học viên</code>
-        </div>
-        <div class="lesson-controls">
-          <button class="button button-ghost" id="hintButton" type="button">💡 Gợi ý</button>
-          <button class="button button-primary" id="checkButton" type="button">Kiểm tra bài</button>
-        </div>
-        <div class="lesson-progress" aria-label="Tiến độ bài học">
-          <div class="lesson-progress-bar" id="lessonProgressBar"></div>
-        </div>
-      </section>
-
       <section class="builder-grid" aria-label="Trình tạo câu lệnh SQL">
         <aside class="panel palette-panel" aria-labelledby="paletteTitle">
           <div class="panel-heading">
@@ -74,7 +54,7 @@
           <div class="panel-heading workspace-heading">
             <div>
               <span class="eyebrow">KHÔNG GIAN LẮP GHÉP</span>
-              <h2 id="workspaceTitle">Câu lệnh của bạn</h2>
+              <h1 id="workspaceTitle">Câu lệnh của bạn</h1>
             </div>
             <button class="text-button danger-text" id="clearButton" type="button">Xóa tất cả</button>
           </div>
@@ -154,12 +134,6 @@
         </div>
         <div class="table-scroll" id="resultTableWrap" hidden></div>
       </section>
-
-      <nav class="lesson-navigation" aria-label="Điều hướng bài học">
-        <button class="button button-ghost" id="previousLessonButton" type="button" disabled>← Bài trước</button>
-        <div class="lesson-dots" id="lessonDots" aria-label="Các bài học"></div>
-        <button class="button button-ghost" id="nextLessonButton" type="button">Bài tiếp →</button>
-      </nav>
     </main>
 
     <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
