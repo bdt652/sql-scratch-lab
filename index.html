@@ -5,156 +5,337 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="SQL Scratch Lab - học câu lệnh SQL bằng cách kéo thả các khối trực quan."
+      content="SQLite Scratch Lab - tạo database, chạy SQL thật và dựng truy vấn bằng khối trực quan ngay trong trình duyệt."
     />
-    <title>SQL Scratch Lab</title>
-    <link rel="stylesheet" href="styles.css?v=20260720.2" />
+    <meta name="theme-color" content="#6246ea" />
+    <title>SQLite Scratch Lab</title>
+    <link rel="stylesheet" href="styles.css?v=20260720.3" />
   </head>
   <body>
+    <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite">
+      <div class="loading-card">
+        <div class="database-loader" aria-hidden="true"><i></i><i></i><i></i></div>
+        <strong>Đang khởi động SQLite…</strong>
+        <span>Đang nạp WebAssembly và database của bạn</span>
+      </div>
+    </div>
+
     <header class="topbar">
-      <a class="brand" href="#" aria-label="SQL Scratch Lab - về đầu trang">
-        <span class="brand-mark" aria-hidden="true">{ }</span>
-        <span>
-          <strong>SQL Scratch</strong>
+      <a class="brand" href="#" aria-label="SQLite Scratch Lab - về đầu trang">
+        <span class="brand-mark" aria-hidden="true">db</span>
+        <span class="brand-copy">
+          <strong>SQLite Scratch</strong>
           <small>LAB</small>
         </span>
       </a>
 
-      <div class="topbar-actions">
-        <span class="save-state" id="saveState" aria-live="polite">
-          <span class="save-dot"></span>
-          Tự động lưu
+      <div class="topbar-status">
+        <span class="runtime-badge" id="runtimeBadge">
+          <span class="status-dot loading"></span>
+          SQLite đang nạp
         </span>
-        <button class="icon-button" id="openHelpButton" type="button" aria-label="Mở hướng dẫn">
-          <span aria-hidden="true">?</span>
-        </button>
+        <span class="save-state" id="saveState">
+          <span class="status-dot"></span>
+          Chưa lưu
+        </span>
+        <button class="icon-button" id="openHelpButton" type="button" aria-label="Mở hướng dẫn">?</button>
       </div>
     </header>
 
     <main class="app-shell">
-      <section class="builder-grid" aria-label="Trình tạo câu lệnh SQL">
-        <aside class="panel palette-panel" aria-labelledby="paletteTitle">
-          <div class="panel-heading">
-            <div>
-              <span class="eyebrow">HỘP CÔNG CỤ</span>
-              <h2 id="paletteTitle">Khối lệnh</h2>
-            </div>
-            <span class="drag-tip">Kéo hoặc bấm</span>
+      <section class="database-toolbar panel" aria-labelledby="databaseToolbarTitle">
+        <div class="database-identity">
+          <span class="database-icon" aria-hidden="true">▰</span>
+          <div>
+            <span class="eyebrow" id="databaseToolbarTitle">DATABASE ĐANG DÙNG</span>
+            <label class="sr-only" for="databaseSelect">Chọn database</label>
+            <select id="databaseSelect" class="database-select" aria-label="Chọn database"></select>
           </div>
+        </div>
 
-          <div id="blockPalette" class="block-palette"></div>
+        <div class="database-actions" aria-label="Quản lý database">
+          <button class="button button-primary" id="newDatabaseButton" type="button">
+            <span aria-hidden="true">＋</span> Tạo database
+          </button>
+          <button class="button button-ghost" id="renameDatabaseButton" type="button">Đổi tên</button>
+          <button class="button button-ghost danger-text" id="deleteDatabaseButton" type="button">Xóa</button>
+          <span class="action-divider" aria-hidden="true"></span>
+          <label class="button button-ghost file-button" for="importDatabaseInput">
+            Nhập `.sqlite`
+          </label>
+          <input id="importDatabaseInput" type="file" accept=".sqlite,.sqlite3,.db,application/x-sqlite3" hidden />
+          <button class="button button-ghost" id="exportDatabaseButton" type="button">Xuất file</button>
+        </div>
 
-          <div class="mini-help">
-            <span aria-hidden="true">✦</span>
-            <p><strong>Mẹo:</strong> Thứ tự các khối cũng chính là thứ tự viết câu SQL.</p>
-          </div>
-        </aside>
-
-        <section class="panel workspace-panel" aria-labelledby="workspaceTitle">
-          <div class="panel-heading workspace-heading">
-            <div>
-              <span class="eyebrow">KHÔNG GIAN LẮP GHÉP</span>
-              <h1 id="workspaceTitle">Câu lệnh của bạn</h1>
-            </div>
-            <button class="text-button danger-text" id="clearButton" type="button">Xóa tất cả</button>
-          </div>
-
-          <div class="workspace-wrap">
-            <div id="workspace" class="workspace" aria-label="Thả các khối SQL vào đây">
-              <div class="empty-workspace" id="emptyWorkspace">
-                <div class="empty-illustration" aria-hidden="true">
-                  <span>SELECT</span>
-                  <i>+</i>
-                  <span>FROM</span>
-                </div>
-                <h3>Bắt đầu lắp câu lệnh</h3>
-                <p>Kéo khối từ bên trái vào đây, hoặc bấm vào một khối để thêm nhanh.</p>
-              </div>
-              <div id="workspaceBlocks" class="workspace-blocks"></div>
-            </div>
-          </div>
-
-          <div class="workspace-footer">
-            <span id="blockCount">0 khối</span>
-            <span class="keyboard-note">Có thể bấm khối để thêm — không bắt buộc kéo thả</span>
-          </div>
-        </section>
-
-        <aside class="inspector-column">
-          <section class="panel sql-panel" aria-labelledby="sqlTitle">
-            <div class="panel-heading compact-heading">
-              <div>
-                <span class="eyebrow">SQL ĐƯỢC TẠO</span>
-                <h2 id="sqlTitle">Xem câu lệnh</h2>
-              </div>
-              <button class="text-button" id="copyButton" type="button">Sao chép</button>
-            </div>
-
-            <div class="sql-code-wrap">
-              <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-              <pre id="sqlPreview" class="sql-preview"><code><span class="sql-comment">-- Hãy thêm khối để bắt đầu</span></code></pre>
-            </div>
-
-            <div class="validation-message neutral" id="validationMessage" role="status">
-              <span aria-hidden="true">○</span>
-              <p>Câu lệnh sẽ được kiểm tra tại đây.</p>
-            </div>
-
-            <button class="button run-button" id="runButton" type="button" disabled>
-              <span aria-hidden="true">▶</span>
-              Chạy câu lệnh
-              <kbd>Ctrl ↵</kbd>
-            </button>
-          </section>
-
-          <section class="panel schema-panel" aria-labelledby="schemaTitle">
-            <div class="panel-heading compact-heading">
-              <div>
-                <span class="eyebrow">CƠ SỞ DỮ LIỆU MẪU</span>
-                <h2 id="schemaTitle">Khám phá bảng</h2>
-              </div>
-            </div>
-            <div class="schema-tabs" id="schemaTabs" role="tablist" aria-label="Chọn bảng dữ liệu"></div>
-            <div id="schemaContent" class="schema-content"></div>
-          </section>
-        </aside>
+        <div class="database-meta" id="databaseMeta" aria-live="polite">
+          <span>0 bảng</span>
+          <i></i>
+          <span>0 B</span>
+        </div>
       </section>
 
-      <section class="panel results-panel" aria-labelledby="resultsTitle">
-        <div class="panel-heading results-heading">
-          <div>
-            <span class="eyebrow">KẾT QUẢ TRUY VẤN</span>
-            <h2 id="resultsTitle">Bảng kết quả</h2>
+      <section class="studio-layout">
+        <aside class="panel explorer-panel" aria-label="Trình khám phá database">
+          <div class="segmented-tabs explorer-tabs" role="tablist" aria-label="Nội dung thanh bên">
+            <button class="segment-tab active" type="button" role="tab" aria-selected="true" data-side-tab="schema">Cấu trúc</button>
+            <button class="segment-tab" type="button" role="tab" aria-selected="false" data-side-tab="history">Lịch sử</button>
           </div>
-          <div class="result-meta" id="resultMeta">Chưa chạy câu lệnh</div>
+
+          <section id="schemaPane" class="explorer-pane" aria-labelledby="schemaPaneTitle">
+            <div class="explorer-heading">
+              <div>
+                <span class="eyebrow">SCHEMA</span>
+                <h2 id="schemaPaneTitle">Đối tượng database</h2>
+              </div>
+              <button class="small-icon-button" id="refreshSchemaButton" type="button" title="Làm mới schema" aria-label="Làm mới schema">↻</button>
+            </div>
+            <label class="search-field">
+              <span aria-hidden="true">⌕</span>
+              <input id="schemaSearchInput" type="search" placeholder="Tìm bảng, cột…" autocomplete="off" />
+            </label>
+            <div id="schemaTree" class="schema-tree"></div>
+          </section>
+
+          <section id="historyPane" class="explorer-pane" hidden aria-labelledby="historyPaneTitle">
+            <div class="explorer-heading">
+              <div>
+                <span class="eyebrow">QUERY LOG</span>
+                <h2 id="historyPaneTitle">Lịch sử câu lệnh</h2>
+              </div>
+              <button class="text-button danger-text" id="clearHistoryButton" type="button">Xóa</button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+          </section>
+        </aside>
+
+        <div class="studio-main">
+          <section class="panel workbench-panel" aria-labelledby="workbenchTitle">
+            <div class="workbench-header">
+              <div>
+                <span class="eyebrow">SQL WORKBENCH</span>
+                <h1 id="workbenchTitle">Viết hoặc lắp ghép câu lệnh</h1>
+              </div>
+              <div class="segmented-tabs mode-tabs" role="tablist" aria-label="Chế độ nhập SQL">
+                <button class="segment-tab active" type="button" role="tab" aria-selected="true" data-mode-tab="editor">
+                  <span aria-hidden="true">⌨</span> SQL Editor
+                </button>
+                <button class="segment-tab" type="button" role="tab" aria-selected="false" data-mode-tab="blocks">
+                  <span aria-hidden="true">▦</span> Kéo thả
+                </button>
+              </div>
+            </div>
+
+            <section id="editorMode" class="mode-pane editor-mode" aria-label="SQL Editor">
+              <div class="editor-toolbar">
+                <div class="template-picker">
+                  <label for="templateSelect">Mẫu lệnh</label>
+                  <select id="templateSelect">
+                    <option value="">Chọn một mẫu SQL…</option>
+                    <option value="select">SELECT cơ bản</option>
+                    <option value="create-table">CREATE TABLE</option>
+                    <option value="insert">INSERT dữ liệu</option>
+                    <option value="update">UPDATE dữ liệu</option>
+                    <option value="delete">DELETE dữ liệu</option>
+                    <option value="join">JOIN nhiều bảng</option>
+                    <option value="group">GROUP BY & HAVING</option>
+                    <option value="view">CREATE VIEW</option>
+                    <option value="index">CREATE INDEX</option>
+                    <option value="trigger">CREATE TRIGGER</option>
+                    <option value="transaction">TRANSACTION</option>
+                    <option value="pragma">PRAGMA & thông tin SQLite</option>
+                  </select>
+                  <button class="button button-ghost" id="insertTemplateButton" type="button">Nạp mẫu</button>
+                </div>
+                <div class="editor-tools">
+                  <button class="text-button" id="explainButton" type="button">EXPLAIN</button>
+                  <button class="text-button" id="clearEditorButton" type="button">Xóa editor</button>
+                </div>
+              </div>
+
+              <div class="code-editor-shell">
+                <div class="editor-titlebar">
+                  <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                  <span>query.sql</span>
+                  <span class="transaction-badge" id="transactionBadge" hidden>Transaction đang mở</span>
+                </div>
+                <label class="sr-only" for="sqlEditor">Nhập câu lệnh SQL</label>
+                <textarea
+                  id="sqlEditor"
+                  class="sql-editor"
+                  spellcheck="false"
+                  autocomplete="off"
+                  autocapitalize="off"
+                  aria-describedby="editorHint"
+                >SELECT s.name, s.city, s.score
+FROM students AS s
+WHERE s.score &gt;= 8
+ORDER BY s.score DESC;</textarea>
+                <div class="editor-statusbar">
+                  <span id="editorStats">4 dòng · 98 ký tự</span>
+                  <span id="editorHint">Chọn một đoạn để chỉ chạy đoạn đó</span>
+                  <span>Ctrl/⌘ + Enter để chạy</span>
+                </div>
+              </div>
+
+              <div class="editor-actions">
+                <div class="execution-scope" id="executionScope">Sẽ chạy toàn bộ nội dung editor</div>
+                <button class="button run-button" id="runEditorButton" type="button">
+                  <span aria-hidden="true">▶</span>
+                  Chạy SQL
+                  <kbd>Ctrl ↵</kbd>
+                </button>
+              </div>
+            </section>
+
+            <section id="blocksMode" class="mode-pane blocks-mode" hidden aria-label="Trình kéo thả SQL">
+              <div class="block-studio-grid">
+                <aside class="block-palette-column" aria-labelledby="paletteTitle">
+                  <div class="subpanel-heading">
+                    <div>
+                      <span class="eyebrow">HỘP CÔNG CỤ</span>
+                      <h2 id="paletteTitle">Khối truy vấn</h2>
+                    </div>
+                    <span>Kéo hoặc bấm</span>
+                  </div>
+                  <div id="blockPalette" class="block-palette"></div>
+                </aside>
+
+                <section class="block-workspace-column" aria-labelledby="workspaceTitle">
+                  <div class="subpanel-heading">
+                    <div>
+                      <span class="eyebrow">KHÔNG GIAN LẮP GHÉP</span>
+                      <h2 id="workspaceTitle">Câu lệnh trực quan</h2>
+                    </div>
+                    <button class="text-button danger-text" id="clearBlocksButton" type="button">Xóa tất cả</button>
+                  </div>
+                  <div id="workspace" class="workspace" aria-label="Thả các khối SQL vào đây">
+                    <div class="empty-workspace" id="emptyWorkspace">
+                      <div class="empty-blocks" aria-hidden="true"><span>SELECT</span><i>＋</i><span>FROM</span></div>
+                      <h3>Thả khối vào đây</h3>
+                      <p>Bạn cũng có thể bấm một khối để thêm nhanh.</p>
+                    </div>
+                    <div id="workspaceBlocks" class="workspace-blocks"></div>
+                  </div>
+                  <div class="workspace-footer">
+                    <span id="blockCount">0 khối</span>
+                    <span>Kéo nút ⠿ để đổi thứ tự</span>
+                  </div>
+                </section>
+
+                <aside class="block-preview-column" aria-labelledby="blockPreviewTitle">
+                  <div class="subpanel-heading">
+                    <div>
+                      <span class="eyebrow">SQL ĐƯỢC TẠO</span>
+                      <h2 id="blockPreviewTitle">Câu lệnh</h2>
+                    </div>
+                    <button class="text-button" id="copyBlockSqlButton" type="button">Sao chép</button>
+                  </div>
+                  <div class="sql-preview-shell">
+                    <pre id="blockSqlPreview" class="sql-preview"><code><span class="sql-comment">-- Thêm khối để bắt đầu</span></code></pre>
+                  </div>
+                  <div class="validation-message neutral" id="blockValidationMessage" role="status">
+                    <span aria-hidden="true">○</span>
+                    <p>SQL sẽ được kiểm tra tại đây.</p>
+                  </div>
+                  <div class="block-preview-actions">
+                    <button class="button button-ghost" id="sendBlockToEditorButton" type="button" disabled>Đưa sang editor</button>
+                    <button class="button run-button" id="runBlockButton" type="button" disabled>
+                      <span aria-hidden="true">▶</span> Chạy truy vấn
+                    </button>
+                  </div>
+                </aside>
+              </div>
+            </section>
+          </section>
+
+          <section class="panel results-panel" aria-labelledby="resultsTitle">
+            <div class="results-header">
+              <div>
+                <span class="eyebrow">OUTPUT</span>
+                <h2 id="resultsTitle">Kết quả thực thi</h2>
+              </div>
+              <div class="results-header-actions">
+                <div class="result-meta" id="resultMeta">Chưa chạy câu lệnh</div>
+                <button class="text-button" id="clearResultsButton" type="button">Dọn kết quả</button>
+              </div>
+            </div>
+            <div class="result-placeholder" id="resultPlaceholder">
+              <span aria-hidden="true">▦</span>
+              <h3>Sẵn sàng chạy SQL thật</h3>
+              <p>Kết quả, lỗi và số dòng thay đổi sẽ xuất hiện tại đây.</p>
+            </div>
+            <div id="resultOutput" class="result-output" hidden></div>
+          </section>
         </div>
-        <div class="result-placeholder" id="resultPlaceholder">
-          <span aria-hidden="true">▦</span>
-          <p>Kết quả sẽ xuất hiện ở đây sau khi bạn chạy câu lệnh.</p>
-        </div>
-        <div class="table-scroll" id="resultTableWrap" hidden></div>
       </section>
     </main>
 
     <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
-    <dialog class="help-dialog" id="helpDialog">
-      <form method="dialog">
-        <button class="dialog-close" value="close" aria-label="Đóng hướng dẫn">×</button>
-      </form>
-      <div class="dialog-badge" aria-hidden="true">🧩</div>
-      <span class="eyebrow">HƯỚNG DẪN NHANH</span>
-      <h2>Ghép SQL như ghép hình</h2>
-      <ol class="help-steps">
-        <li><span>1</span><p><strong>Chọn khối</strong>Bấm hoặc kéo một khối lệnh vào vùng lắp ghép.</p></li>
-        <li><span>2</span><p><strong>Điền thông tin</strong>Chọn bảng, cột và điều kiện ngay trên từng khối.</p></li>
-        <li><span>3</span><p><strong>Chạy thử</strong>Đọc câu SQL được tạo rồi xem kết quả trên dữ liệu mẫu.</p></li>
-      </ol>
-      <form method="dialog">
-        <button class="button button-primary dialog-action" value="close">Mình hiểu rồi</button>
+    <dialog class="app-dialog database-dialog" id="databaseDialog">
+      <form id="databaseForm" method="dialog">
+        <button class="dialog-close" value="cancel" formnovalidate aria-label="Đóng">×</button>
+        <div class="dialog-badge" aria-hidden="true">▰</div>
+        <span class="eyebrow">DATABASE MỚI</span>
+        <h2>Tạo một SQLite database</h2>
+        <p class="dialog-description">Database được lưu trong trình duyệt này và có thể xuất thành file `.sqlite` bất cứ lúc nào.</p>
+
+        <label class="form-field">
+          <span>Tên database</span>
+          <input id="databaseNameInput" name="databaseName" required maxlength="40" placeholder="Ví dụ: quan_ly_ban_hang" autocomplete="off" />
+        </label>
+
+        <fieldset class="starter-options">
+          <legend>Khởi tạo với</legend>
+          <label>
+            <input type="radio" name="starter" value="blank" checked />
+            <span><strong>Database trống</strong><small>Tự tạo table bằng SQL</small></span>
+          </label>
+          <label>
+            <input type="radio" name="starter" value="sample" />
+            <span><strong>Dữ liệu trường học</strong><small>3 table, dữ liệu và quan hệ mẫu</small></span>
+          </label>
+        </fieldset>
+
+        <div class="dialog-actions">
+          <button class="button button-ghost" value="cancel" formnovalidate>Hủy</button>
+          <button class="button button-primary" id="confirmCreateDatabaseButton" value="default">Tạo database</button>
+        </div>
       </form>
     </dialog>
 
-    <script src="app.js?v=20260720.2"></script>
+    <dialog class="app-dialog help-dialog" id="helpDialog">
+      <form method="dialog">
+        <button class="dialog-close" value="close" aria-label="Đóng hướng dẫn">×</button>
+      </form>
+      <div class="dialog-badge" aria-hidden="true">⌘</div>
+      <span class="eyebrow">HƯỚNG DẪN NHANH</span>
+      <h2>Hai cách làm việc với SQLite</h2>
+      <div class="help-grid">
+        <article>
+          <span aria-hidden="true">⌨</span>
+          <h3>SQL Editor</h3>
+          <p>Chạy DDL, DML, truy vấn nhiều bảng, transaction, view, index, trigger và PRAGMA.</p>
+        </article>
+        <article>
+          <span aria-hidden="true">▦</span>
+          <h3>Kéo thả</h3>
+          <p>Lắp truy vấn SELECT cơ bản rồi chạy trên chính database đang mở.</p>
+        </article>
+      </div>
+      <ul class="help-notes">
+        <li><strong>Tạo database:</strong> dùng nút “Tạo database”; SQLite không có câu lệnh `CREATE DATABASE`.</li>
+        <li><strong>Lưu dữ liệu:</strong> thay đổi được tự lưu vào IndexedDB sau khi transaction kết thúc.</li>
+        <li><strong>Sao lưu:</strong> dùng “Xuất file” để tải database chuẩn SQLite về máy.</li>
+      </ul>
+      <form method="dialog">
+        <button class="button button-primary dialog-action" value="close">Bắt đầu sử dụng</button>
+      </form>
+    </dialog>
+
+    <script src="vendor/sql-wasm.js?v=1.14.1"></script>
+    <script src="database.js?v=20260720.3"></script>
+    <script src="block-builder.js?v=20260720.3"></script>
+    <script src="app.js?v=20260720.3"></script>
   </body>
 </html>

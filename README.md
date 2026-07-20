@@ -1,57 +1,67 @@
-# SQL Scratch Lab
+# SQLite Scratch Lab
 
 [![Deploy GitHub Pages](https://github.com/bdt652/sql-scratch-lab/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/bdt652/sql-scratch-lab/actions/workflows/deploy-pages.yml)
 
-Một website học SQL bằng cách kéo thả các khối lệnh trực quan, được xây dựng hoàn toàn bằng **HTML, CSS và JavaScript thuần**.
+Một SQLite studio chạy hoàn toàn trong trình duyệt, kết hợp **SQL Editor** với giao diện **kéo thả kiểu Scratch**. Dự án dùng HTML, CSS và JavaScript thuần; SQLite được thực thi thật bằng WebAssembly.
 
 ## Bản chạy trực tuyến
 
-Sau khi GitHub Pages được bật, dự án có tại:
-
 <https://bdt652.github.io/sql-scratch-lab/>
 
-## Tính năng
+## Chức năng
 
-- Kéo thả hoặc bấm để thêm các khối `SELECT`, `FROM`, `WHERE`, `AND`, `OR`, `ORDER BY`, `LIMIT`.
-- Tạo và tô màu câu SQL theo thời gian thực.
-- Kiểm tra thứ tự, cú pháp và hướng dẫn sửa lỗi.
-- Chạy truy vấn ngay trên hai bảng dữ liệu mẫu trong trình duyệt.
-- Hiển thị kết quả truy vấn dưới dạng bảng.
-- Giao diện responsive, hỗ trợ bàn phím và tự lưu vùng làm việc.
-- Không cần cài package, framework hay cơ sở dữ liệu.
+- Tạo, mở, đổi tên và xóa nhiều SQLite database.
+- Tự lưu từng database vào IndexedDB của trình duyệt.
+- Nhập file `.sqlite`, `.sqlite3`, `.db` và xuất lại file SQLite chuẩn.
+- Chạy nhiều câu lệnh trong một lần, hoặc chỉ chạy đoạn SQL đang được chọn.
+- Hỗ trợ hệ lệnh SQLite: DDL, DML, SELECT, JOIN, GROUP BY, transaction, view, index, trigger và PRAGMA.
+- Mẫu câu lệnh có thể nạp và sửa trực tiếp trong editor.
+- Cây schema hiển thị table, view, index, trigger, cột, khóa chính và khóa ngoại.
+- Xem trước 100 dòng của table/view và chèn nhanh tên bảng hoặc cột vào editor.
+- Hiển thị nhiều tập kết quả, giá trị `NULL`, BLOB, số dòng thay đổi và thời gian thực thi.
+- Tải từng tập kết quả thành CSV.
+- Lưu lịch sử câu lệnh riêng cho từng database.
+- Kéo, thả, đổi thứ tự hoặc bấm các khối `SELECT`, `FROM`, `WHERE`, `AND`, `OR`, `ORDER BY`, `LIMIT`.
+- Khối kéo thả dùng schema thật của database đang mở và chạy bằng cùng bộ máy SQLite.
+- Hỗ trợ chuột, cảm ứng, bàn phím và giao diện responsive.
 
-## Chạy dự án
+## Dữ liệu được lưu ở đâu?
 
-Cách đơn giản nhất là mở trực tiếp file `index.html` bằng trình duyệt.
+Database được lưu cục bộ trong **IndexedDB của chính trình duyệt và thiết bị đang dùng**. Website không gửi database lên máy chủ. Vì dữ liệu không tự đồng bộ giữa các trình duyệt hoặc thiết bị, hãy dùng nút **Xuất file** để sao lưu khi cần.
 
-Hoặc chạy một web server cục bộ:
+SQLite không có câu lệnh `CREATE DATABASE`. Trong ứng dụng, nút **Tạo database** tạo một file database SQLite mới; sau đó bạn dùng `CREATE TABLE` và các câu lệnh SQL khác trong editor.
+
+## Chạy dự án cục bộ
+
+WebAssembly cần được phục vụ qua HTTP. Tại thư mục dự án, chạy:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Sau đó truy cập <http://localhost:8080>.
-
-## Triển khai
-
-Workflow `.github/workflows/deploy-pages.yml` tự động triển khai website lên GitHub Pages mỗi khi nhánh `main` có thay đổi.
+Sau đó mở <http://localhost:8080>. Không cần cài package hoặc build dự án.
 
 ## Cấu trúc
 
 ```text
 sql-scratch-lab/
-├── index.html   # Cấu trúc giao diện
-├── styles.css   # Thiết kế responsive và các khối lệnh
-├── app.js       # Kéo thả, tạo SQL và thực thi truy vấn
-└── README.md
+├── index.html                 # Cấu trúc giao diện
+├── styles.css                 # Thiết kế responsive
+├── database.js                # SQLite, IndexedDB và quản lý database
+├── block-builder.js           # Trình tạo SELECT bằng khối kéo thả
+├── app.js                     # Điều phối editor, schema, lịch sử và kết quả
+├── vendor/
+│   ├── sql-wasm.js            # sql.js 1.14.1
+│   ├── sql-wasm.wasm          # SQLite WebAssembly
+│   └── sql.js-LICENSE.txt
+└── .github/workflows/
+    └── deploy-pages.yml       # Tự động triển khai GitHub Pages
 ```
 
-## Lưu ý
+## Triển khai
 
-Bộ thực thi trong dự án mô phỏng một phần SQL trên dữ liệu JavaScript để người mới có thể học ngay mà không cần thiết lập máy chủ. Đây không phải là một hệ quản trị cơ sở dữ liệu hoàn chỉnh.
+Workflow GitHub Actions tự động triển khai toàn bộ website lên GitHub Pages mỗi khi nhánh `main` có thay đổi.
 
-## Hướng phát triển
+## Thư viện
 
-- Thêm khối `JOIN`, `GROUP BY` và các hàm tổng hợp.
-- Cho phép người học tự tạo bảng và nhập dữ liệu.
-- Dùng SQLite/WebAssembly để chạy nhiều câu SQL hơn.
+Dự án phân phối kèm [sql.js](https://github.com/sql-js/sql.js) 1.14.1 theo giấy phép MIT; nội dung giấy phép nằm trong `vendor/sql.js-LICENSE.txt`.
