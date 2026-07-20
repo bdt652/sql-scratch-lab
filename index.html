@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#6246ea" />
     <title>SQLite Scratch Lab</title>
-    <link rel="stylesheet" href="styles.css?v=20260720.4" />
+    <link rel="stylesheet" href="styles.css?v=20260720.5" />
   </head>
   <body>
     <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite">
@@ -21,18 +21,17 @@
     </div>
 
     <header class="topbar">
-      <a class="brand" href="#" aria-label="SQLite Scratch Lab - về đầu trang">
-        <span class="brand-mark" aria-hidden="true">db</span>
+      <a class="brand" href="#" aria-label="SQLite Lab - về đầu trang">
+        <span class="brand-mark" aria-hidden="true">SQL</span>
         <span class="brand-copy">
-          <strong>SQLite Scratch</strong>
-          <small>LAB</small>
+          <strong>SQLite Lab</strong>
         </span>
       </a>
 
       <div class="topbar-status">
         <span class="runtime-badge" id="runtimeBadge">
           <span class="status-dot loading"></span>
-          SQLite đang nạp
+          Đang nạp…
         </span>
         <span class="save-state" id="saveState">
           <span class="status-dot"></span>
@@ -43,34 +42,37 @@
     </header>
 
     <main class="app-shell">
-      <section class="database-toolbar panel" aria-labelledby="databaseToolbarTitle">
+      <section class="database-toolbar panel" aria-label="Quản lý database">
         <div class="database-identity">
           <span class="database-icon" aria-hidden="true">▰</span>
-          <div>
-            <span class="eyebrow" id="databaseToolbarTitle">DATABASE ĐANG DÙNG</span>
+          <div class="database-picker">
             <label class="sr-only" for="databaseSelect">Chọn database</label>
             <select id="databaseSelect" class="database-select" aria-label="Chọn database"></select>
           </div>
         </div>
 
         <div class="database-actions" aria-label="Quản lý database">
-          <button class="button button-primary" id="newDatabaseButton" type="button">
-            <span aria-hidden="true">＋</span> Tạo database
+          <button class="button button-primary" id="newDatabaseButton" type="button" title="Tạo database">
+            <span aria-hidden="true">＋</span> Mới
           </button>
-          <button class="button button-ghost" id="renameDatabaseButton" type="button">Đổi tên</button>
-          <button class="button button-ghost danger-text" id="deleteDatabaseButton" type="button">Xóa</button>
-          <span class="action-divider" aria-hidden="true"></span>
-          <label class="button button-ghost file-button" for="importDatabaseInput">
-            Nhập `.sqlite`
+          <label class="button button-ghost file-button" for="importDatabaseInput" title="Nhập file SQLite">
+            <span aria-hidden="true">↑</span> Nhập
           </label>
           <input id="importDatabaseInput" type="file" accept=".sqlite,.sqlite3,.db,application/x-sqlite3" hidden />
-          <button class="button button-ghost" id="exportDatabaseButton" type="button">Xuất file</button>
+          <button class="button button-ghost" id="exportDatabaseButton" type="button" title="Xuất file SQLite">
+            <span aria-hidden="true">↓</span> Xuất
+          </button>
+          <details class="database-more">
+            <summary class="button button-ghost" aria-label="Thêm thao tác database" title="Thêm thao tác">•••</summary>
+            <div class="database-menu">
+              <button id="renameDatabaseButton" type="button">Đổi tên</button>
+              <button class="danger-text" id="deleteDatabaseButton" type="button">Xóa database</button>
+            </div>
+          </details>
         </div>
 
         <div class="database-meta" id="databaseMeta" aria-live="polite">
-          <span>0 bảng</span>
-          <i></i>
-          <span>0 B</span>
+          <span>0 bảng · 0 B</span>
         </div>
       </section>
 
@@ -334,8 +336,8 @@ ORDER BY s.score DESC;</textarea>
     </dialog>
 
     <script src="vendor/sql-wasm.js?v=1.14.1"></script>
-    <script src="database.js?v=20260720.4"></script>
-    <script src="block-builder.js?v=20260720.4"></script>
-    <script src="app.js?v=20260720.4"></script>
+    <script src="database.js?v=20260720.5"></script>
+    <script src="block-builder.js?v=20260720.5"></script>
+    <script src="app.js?v=20260720.5"></script>
   </body>
 </html>

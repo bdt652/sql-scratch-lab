@@ -102,7 +102,7 @@ summary:focus-visible,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 68px;
+  min-height: 58px;
   padding: 0 max(24px, calc((100vw - 1680px) / 2));
   color: #fff;
   background: linear-gradient(112deg, #5336d8, #7355f4 58%, #6141e6);
@@ -111,7 +111,7 @@ summary:focus-visible,
 
 .brand {
   display: inline-flex;
-  gap: 11px;
+  gap: 8px;
   align-items: center;
   color: inherit;
   text-decoration: none;
@@ -120,14 +120,14 @@ summary:focus-visible,
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 41px;
-  height: 41px;
+  width: 34px;
+  height: 34px;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 13px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.14);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.18);
   font-family: var(--mono);
-  font-size: 0.9rem;
+  font-size: 0.62rem;
   font-weight: 900;
 }
 
@@ -139,38 +139,28 @@ summary:focus-visible,
 }
 
 .brand-copy strong {
-  font-size: 1.08rem;
-}
-
-.brand-copy small {
-  padding: 2px 6px;
-  border-radius: 5px;
-  color: #5137d2;
-  background: #fff;
-  font-size: 0.59rem;
-  font-weight: 900;
-  letter-spacing: 0.09em;
+  font-size: 0.96rem;
 }
 
 .topbar-status {
   display: flex;
-  gap: 20px;
+  gap: 11px;
   align-items: center;
 }
 
 .runtime-badge,
 .save-state {
   display: inline-flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   color: rgba(255, 255, 255, 0.88);
-  font-size: 0.76rem;
+  font-size: 0.69rem;
   font-weight: 680;
   white-space: nowrap;
 }
 
 .runtime-badge {
-  padding: 7px 11px;
+  padding: 5px 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.1);
@@ -220,8 +210,8 @@ summary:focus-visible,
 }
 
 .icon-button {
-  width: 35px;
-  height: 35px;
+  width: 30px;
+  height: 30px;
 }
 
 .icon-button:hover {
@@ -231,7 +221,7 @@ summary:focus-visible,
 
 .app-shell {
   width: min(1680px, calc(100% - 40px));
-  margin: 24px auto 52px;
+  margin: 16px auto 52px;
 }
 
 .panel {
@@ -323,39 +313,44 @@ summary:focus-visible,
 
 .database-toolbar {
   display: grid;
-  grid-template-columns: minmax(250px, auto) minmax(0, 1fr) auto;
-  gap: 22px;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
-  min-height: 86px;
-  padding: 16px 20px;
+  min-height: 60px;
+  padding: 10px 13px;
 }
 
 .database-identity {
   display: flex;
-  gap: 13px;
+  min-width: 0;
+  gap: 9px;
   align-items: center;
 }
 
 .database-icon {
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   color: var(--purple);
   background: var(--purple-soft);
-  font-size: 1.15rem;
+  font-size: 0.9rem;
   transform: rotate(90deg);
 }
 
+.database-picker {
+  min-width: 0;
+}
+
 .database-select {
-  width: min(310px, 30vw);
-  min-height: 30px;
+  width: min(250px, 24vw);
+  min-height: 34px;
   padding: 0 28px 0 0;
   border: 0;
   color: var(--ink);
   background: transparent;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   cursor: pointer;
@@ -363,38 +358,82 @@ summary:focus-visible,
 
 .database-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 6px;
   align-items: center;
 }
 
-.action-divider {
-  width: 1px;
-  height: 27px;
-  margin: 0 3px;
-  background: var(--line);
+.database-toolbar .button {
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: 9px;
+  font-size: 0.7rem;
 }
 
 .file-button {
   user-select: none;
 }
 
+.database-more {
+  position: relative;
+}
+
+.database-more > summary {
+  min-width: 36px;
+  padding: 0 8px;
+  list-style: none;
+  letter-spacing: 0.08em;
+}
+
+.database-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.database-more[open] > summary {
+  border-color: #cfc8f7;
+  color: var(--purple-dark);
+  background: var(--purple-soft);
+}
+
+.database-menu {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  gap: 3px;
+  width: 150px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(32, 33, 60, 0.16);
+}
+
+.database-menu button {
+  min-height: 34px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.database-menu button:hover {
+  background: var(--surface-muted);
+}
+
 .database-meta {
   display: flex;
-  gap: 9px;
   align-items: center;
   justify-content: flex-end;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 680;
   white-space: nowrap;
-}
-
-.database-meta i {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--muted-light);
 }
 
 .studio-layout {
@@ -407,7 +446,7 @@ summary:focus-visible,
 
 .explorer-panel {
   position: sticky;
-  top: 86px;
+  top: 76px;
   min-height: 610px;
   max-height: calc(100vh - 106px);
   overflow: hidden;
@@ -2105,16 +2144,16 @@ summary:focus-visible,
   }
 
   .database-toolbar {
-    grid-template-columns: 1fr;
-    gap: 13px;
+    grid-template-columns: minmax(150px, 1fr) auto;
+    gap: 8px;
   }
 
   .database-select {
-    width: min(450px, 68vw);
+    width: min(240px, 32vw);
   }
 
   .database-actions {
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
 
   .studio-layout {
@@ -2154,16 +2193,16 @@ summary:focus-visible,
   }
 
   .topbar {
-    min-height: 61px;
+    min-height: 55px;
   }
 
   .brand-mark {
-    width: 37px;
-    height: 37px;
+    width: 32px;
+    height: 32px;
   }
 
   .brand-copy strong {
-    font-size: 0.93rem;
+    font-size: 0.9rem;
   }
 
   .runtime-badge {
@@ -2180,31 +2219,26 @@ summary:focus-visible,
   }
 
   .database-toolbar {
-    padding: 13px;
+    padding: 8px 9px;
   }
 
   .database-icon {
-    width: 41px;
-    height: 41px;
+    display: none;
   }
 
   .database-select {
-    width: calc(100vw - 100px);
-    font-size: 0.92rem;
+    width: min(210px, 28vw);
+    font-size: 0.84rem;
   }
 
   .database-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 100%;
+    display: flex;
+    width: auto;
   }
 
   .database-actions .button {
-    width: 100%;
-  }
-
-  .action-divider {
-    display: none;
+    width: auto;
+    padding: 0 9px;
   }
 
   .workbench-header {
@@ -2347,12 +2381,8 @@ summary:focus-visible,
 }
 
 @media (max-width: 410px) {
-  .brand-copy small {
-    display: none;
-  }
-
   .database-actions {
-    grid-template-columns: 1fr;
+    display: flex;
   }
 
   .block-palette {
@@ -2361,6 +2391,29 @@ summary:focus-visible,
 
   .block-preview-actions {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .database-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .database-select {
+    width: 100%;
+  }
+
+  .database-actions {
+    grid-column: 1;
+    justify-content: stretch;
+  }
+
+  .database-actions > .button {
+    flex: 1 1 0;
+  }
+
+  .database-more {
+    flex: 0 0 36px;
   }
 }
 

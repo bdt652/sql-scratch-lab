@@ -426,7 +426,7 @@
     const databases = await state.workspace.listDatabases();
     elements.databaseSelect.innerHTML = databases.map((database) => `
       <option value="${escapeHtml(database.name)}" ${database.name === state.workspace.currentName ? "selected" : ""}>
-        ${escapeHtml(database.name)} · ${formatBytes(database.size)}
+        ${escapeHtml(database.name)}
       </option>`).join("");
   }
 
@@ -441,7 +441,7 @@
     const status = state.workspace.getStatus();
     const tables = getObjects("table").length;
     const views = getObjects("view").length;
-    elements.databaseMeta.innerHTML = `<span>${tables} bảng${views ? ` · ${views} view` : ""}</span><i></i><span>${formatBytes(status.size)}</span>`;
+    elements.databaseMeta.innerHTML = `<span>${tables} bảng${views ? ` · ${views} view` : ""} · ${formatBytes(status.size)}</span>`;
     elements.transactionBadge.hidden = !status.transactionOpen;
     return state.schema;
   }
@@ -452,8 +452,8 @@
     loadHistory();
     if (options.loadEditor !== false) loadEditor();
     const status = state.workspace.getStatus();
-    setRuntimeStatus(`SQLite ${status.sqliteVersion}`, "ready");
-    setSaveState(status.storageMode === "indexeddb" ? "Đã tự lưu" : "Chỉ lưu tạm", status.storageMode === "indexeddb" ? "saved" : "warning");
+    setRuntimeStatus(`v${status.sqliteVersion}`, "ready");
+    setSaveState(status.storageMode === "indexeddb" ? "Đã lưu" : "Lưu tạm", status.storageMode === "indexeddb" ? "saved" : "warning");
   }
 
   function renderValue(value) {
@@ -585,7 +585,7 @@
       await refreshDatabaseList();
       await refreshSchema();
       if (execution.transactionOpen) setSaveState("Transaction chưa lưu", "warning");
-      else setSaveState("Đã tự lưu", "saved");
+      else setSaveState("Đã lưu", "saved");
       showToast(source === "blocks" ? "Đã chạy truy vấn từ các khối." : "SQLite đã thực thi thành công.", "success");
       return execution;
     } catch (error) {
@@ -748,8 +748,14 @@
     });
     elements.databaseForm.addEventListener("submit", createDatabaseFromDialog);
     elements.databaseSelect.addEventListener("change", () => switchDatabase(elements.databaseSelect.value));
-    elements.renameDatabaseButton.addEventListener("click", renameDatabase);
-    elements.deleteDatabaseButton.addEventListener("click", deleteDatabase);
+    elements.renameDatabaseButton.addEventListener("click", () => {
+      elements.renameDatabaseButton.closest("details")?.removeAttribute("open");
+      renameDatabase();
+    });
+    elements.deleteDatabaseButton.addEventListener("click", () => {
+      elements.deleteDatabaseButton.closest("details")?.removeAttribute("open");
+      deleteDatabase();
+    });
     elements.importDatabaseInput.addEventListener("change", importDatabase);
     elements.exportDatabaseButton.addEventListener("click", exportDatabase);
 
